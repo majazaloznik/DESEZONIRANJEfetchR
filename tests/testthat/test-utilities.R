@@ -82,14 +82,102 @@ test_that("find_most_recent_file warns with multiple matching files", {
   )
 })
 
-test_that("get_all_recent_files uses desezoniranje_config", {
-  # This will actually try to access the network paths in the real config
-  # Skip if not on the network
-  skip_if_not(dir.exists("O:/DESEZONIRANJE"), "Network drive not available")
+test_that("get_all_recent_files returns named vector of file paths", {
+  # Create temporary base directories for two mock data sources
+  base_dir_1 <- withr::local_tempdir()
+  base_dir_2 <- withr::local_tempdir()
 
-  result <- get_all_recent_files()
+  # Create structure for source 1 (monthly pattern)
+  dir.create(file.path(base_dir_1, "Leto 2024"))
+  dir.create(file.path(base_dir_1, "Leto 2025"))
+  dir.create(file.path(base_dir_1, "Leto 2025", "06 2025"))
+  dir.create(file.path(base_dir_1, "Leto 2025", "07 2025"))
+  file.create(file.path(base_dir_1, "Leto 2025", "07 2025", "BP2024_2008.xls"))
+
+  # Create structure for source 2 (quarterly pattern)
+  dir.create(file.path(base_dir_2, "2024"))
+  dir.create(file.path(base_dir_2, "2025"))
+  dir.create(file.path(base_dir_2, "2025", "Q1 2025"))
+  dir.create(file.path(base_dir_2, "2025", "Q2 2025"))
+  file.create(file.path(base_dir_2, "2025", "Q2 2025", "ILO brezposelni.xls"))
+
+  # Mock config
+  mock_config <- list(
+    source_1 = list(
+      base_path = base_dir_1,
+      file_pattern = "^BP\\d{4}_\\d{4}",
+      year_folder_pattern = "Leto \\d{4}",
+      month_folder_pattern = "\\d{2} \\d{4}"
+    ),
+    source_2 = list(
+      base_path = base_dir_2,
+      file_pattern = "^ILO brezposelni",
+      year_folder_pattern = "\\d{4}",
+      month_folder_pattern = "Q\\d \\d{4}"
+    )
+  )
+
+  result <- get_all_recent_files(config = mock_config)
 
   expect_type(result, "character")
-  expect_named(result)
+  expect_named(result, c("source_1", "source_2"))
   expect_true(all(file.exists(result)))
+  expect_match(result["source_1"], "07 2025.*BP2024_2008\\.xls$")
+  expect_match(result["source_2"], "Q2 2025.*ILO brezposelni\\.xls$")
+})
+
+test_that("get_all_recent_files handles partial failures gracefully", {
+  # Create one valid and one invalid base path
+  base_dir_valid <- withr::local_tempdir()
+  dir.create(file.path(base_dir_valid, "2025"))
+  dir.create(file.path(base_dir_valid, "2025", "Q1"))
+  file.create(file.path(base_dir_valid, "2025", "Q1", "test.xls"))
+
+  mock_config <- list(
+    valid_source = list(
+      base_path = base_dir_valid,
+      file_pattern = "^test",
+      year_folder_pattern = "\\d{4}",
+      month_folder_pattern = "Q\\d"
+    ),
+    invalid_source = list(
+      base_path = file.path(withr::local_tempdir(), "nonexistent"),
+      file_pattern = "^test",
+      year_folder_pattern = "\\d{4}",
+      month_folder_pattern = "Q\\d"
+    )
+  )
+
+  expect_warning(
+    result <- get_all_recent_files(config = mock_config),
+    "Failed to find files for: invalid_source"
+  )
+
+  expect_length(result, 1)
+  expect_named(result, "valid_source")
+  expect_true(file.exists(result["valid_source"]))
+})
+
+test_that("get_all_recent_files returns empty vector when all sources fail", {
+  mock_config <- list(
+    fail_1 = list(
+      base_path = file.path(withr::local_tempdir(), "nonexistent1"),
+      file_pattern = "^test",
+      year_folder_pattern = "\\d{4}",
+      month_folder_pattern = "Q\\d"
+    ),
+    fail_2 = list(
+      base_path = file.path(withr::local_tempdir(), "nonexistent2"),
+      file_pattern = "^test",
+      year_folder_pattern = "\\d{4}",
+      month_folder_pattern = "Q\\d"
+    )
+  )
+
+  expect_warning(
+    result <- get_all_recent_files(config = mock_config),
+    "Failed to find files for: fail_1, fail_2"
+  )
+
+  expect_length(result, 0)
 })

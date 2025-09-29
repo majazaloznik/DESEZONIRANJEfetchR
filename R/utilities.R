@@ -35,23 +35,43 @@
 #' @keywords internal
 
 find_most_recent_file <- function(base_path, file_pattern, year_pattern, month_pattern) {
+  # Check base path exists
+  if (!dir.exists(base_path)) {
+    stop("Base path does not exist: ", base_path)
+  }
+
   # Find most recent year folder
   year_dirs <- list.dirs(base_path, full.names = FALSE, recursive = FALSE)
   year_dirs <- year_dirs[grepl(year_pattern, year_dirs)]
+
+  if (length(year_dirs) == 0) {
+    stop("No year folders matching pattern '", year_pattern, "' found in ", base_path)
+  }
+
   latest_year <- max(year_dirs)
 
   # Find most recent month folder within that year
   year_path <- file.path(base_path, latest_year)
   month_dirs <- list.dirs(year_path, full.names = FALSE, recursive = FALSE)
   month_dirs <- month_dirs[grepl(month_pattern, month_dirs)]
+
+  if (length(month_dirs) == 0) {
+    stop("No month folders matching pattern '", month_pattern, "' found in ", year_path)
+  }
+
   latest_month <- max(month_dirs)
 
   # Find matching file
   target_dir <- file.path(year_path, latest_month)
   files <- list.files(target_dir, pattern = paste0(file_pattern, ".*\\.xls$"), full.names = TRUE)
 
-  if (length(files) == 0) stop("No matching files found in ", target_dir)
-  if (length(files) > 1) warning("Multiple files match pattern, using first: ", files[1])
+  if (length(files) == 0) {
+    stop("No matching files found in ", target_dir)
+  }
+
+  if (length(files) > 1) {
+    warning("Multiple files match pattern, using first: ", files[1])
+  }
 
   files[1]
 }
@@ -63,6 +83,9 @@ find_most_recent_file <- function(base_path, file_pattern, year_pattern, month_p
 #' `desezoniranje_config`. Uses `find_most_recent_file()` for each entry
 #' with graceful error handling - failures are reported as warnings but
 #' don't stop execution.
+#'
+#' @param config List of configurations. Defaults to `desezoniranje_config`.
+#'   Primarily for testing purposes.
 #'
 #' @return Named character vector of file paths. Names correspond to entries
 #'   in `desezoniranje_config`. Failed lookups are omitted from the result
@@ -83,10 +106,10 @@ find_most_recent_file <- function(base_path, file_pattern, year_pattern, month_p
 #' @seealso [find_most_recent_file()]
 #'
 #' @export
-get_all_recent_files <- function() {
+get_all_recent_files <- function(config = desezoniranje_config) {
   safely_find_file <- purrr::safely(find_most_recent_file)
 
-  results <- purrr::map(desezoniranje_config, ~{
+  results <- purrr::map(config, ~{
     safely_find_file(
       base_path = .x$base_path,
       file_pattern = .x$file_pattern,
@@ -96,13 +119,18 @@ get_all_recent_files <- function() {
   })
 
   # Extract successful results and report failures
-  successes <- purrr::map_chr(results, "result")
+  successes <- purrr::map(results, "result")
   errors <- purrr::map(results, "error")
 
-  if (any(!purrr::map_lgl(errors, is.null))) {
-    failed_tables <- names(errors)[!purrr::map_lgl(errors, is.null)]
+  # Filter out NULL results (failed lookups)
+  has_error <- !purrr::map_lgl(errors, is.null)
+
+  if (any(has_error)) {
+    failed_tables <- names(config)[has_error]
     warning("Failed to find files for: ", paste(failed_tables, collapse = ", "))
   }
 
-  successes[!is.na(successes)]
+  # Return only successful results
+  successes <- successes[!has_error]
+  purrr::map_chr(successes, identity)
 }

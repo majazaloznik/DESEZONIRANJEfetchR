@@ -4,7 +4,11 @@
 \alias{get_all_recent_files}
 \title{Get all recent DESEZONIRANJE file paths}
 \usage{
-get_all_recent_files()
+get_all_recent_files(config = desezoniranje_config)
+}
+\arguments{
+\item{config}{List of configurations. Defaults to `desezoniranje_config`.
+Primarily for testing purposes.}
 }
 \value{
 Named character vector of file paths. Names correspond to entries
