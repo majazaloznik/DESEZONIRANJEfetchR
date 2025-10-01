@@ -7,11 +7,13 @@ desezoniranje_config <- list(
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^BP",
     table_id = "BP",
+    table_name = "Bruto plače",
     expected_columns = c("Skupaj", "Zasebni sektor", "Javni sektor",
                          "Sektor država", "Javne družbe"),
     column_codes = c("period_id", "SK", "ZS", "JS", "SD", "JD"),
     description = "Bruto plače v javnem in zasebnem sektorju",
-    interval = "M"
+    interval = "M",
+    unit = "eur"
   ),
   delovno_aktivni = list(
     category = "Trg dela",
@@ -20,10 +22,12 @@ desezoniranje_config <- list(
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^DA",
     table_id = "DA",
-    expected_columns = c("DA"),
+    table_name = "Delovno aktivni",
+    expected_columns = c("Delovno aktivni - vsi"),
     column_codes = c("period_id", "VSI"),
     description = "Delovno aktivni - vsi",
-    interval = "M"
+    interval = "M",
+    unit = "\u0161tevilo"
   ),
   delovno_aktivni_brez_kmetov = list(
     category = "Trg dela",
@@ -32,10 +36,12 @@ desezoniranje_config <- list(
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^DA brez",
     table_id = "DA",
+    table_name = "Delovno aktivni",
     expected_columns = c("DA brez kmetov"),
     column_codes = c("period_id", "BK"),
     description = "Delovno aktivni - brez kmetov",
-    interval = "M"
+    interval = "M",
+    unit = "\u0161tevilo"
   ),
   delovno_aktivni_disagr = list(
     category = "Trg dela",
@@ -44,11 +50,13 @@ desezoniranje_config <- list(
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^DA",
     table_id = "DA",
+    table_name = "Delovno aktivni",
     expected_columns = c("Predelovalne", "Gradbeništvo", "Tržne storitve",
                          "Javne storitve", "Ostale storitve"),
     column_codes = c("period_id", "PR", "GR", "TS", "JS", "OS"),
     description = "Delovno aktivni po dejavnostih",
-    interval = "M"
+    interval = "M",
+    unit = "\u0161tevilo"
   ),
   ilo_brezposelni = list(
     category = "Trg dela",
@@ -57,10 +65,12 @@ desezoniranje_config <- list(
     month_folder_pattern = "Q\\d \\d{4}",
     file_pattern = "^ILO",
     table_id = "ILO",
+    table_name = "Brezposelnost - ILO",
     expected_columns = c("ILO brezposelni"),
     column_codes = c("period_id", "BP"),
     description = "ILO število brezposelnih",
-    interval = "Q"
+    interval = "Q",
+    unit = "\u0161tevilo"
   ),
   ilo_stopnja = list(
       category = "Trg dela",
@@ -69,10 +79,12 @@ desezoniranje_config <- list(
       month_folder_pattern = "Q\\d \\d{4}",
       file_pattern = "^Stopnja ILO",
       table_id = "ILO",
-      expected_columns = c("St# ILO brezposelnih"),
+      table_name = "Brezposelnost - ILO",
+      expected_columns = c("Stopnja ILO brezposelnih"),
       column_codes = c("period_id", "ST"),
       description = "ILO stopnja brezposelnih",
-      interval = "Q"
+      interval = "Q",
+      unit = "%"
     ),
   ilo_zaposleni = list(
     category = "Trg dela",
@@ -81,10 +93,12 @@ desezoniranje_config <- list(
     month_folder_pattern = "Q\\d \\d{4}",
     file_pattern = "^ILO Zaposleni",
     table_id = "ILO",
+    table_name = "Brezposelnost - ILO",
     expected_columns = c("ILO zaposleni"),
     column_codes = c("period_id", "ZP"),
     description = "ILO število zaposlenih",
-    interval = "Q"
+    interval = "Q",
+    unit = "\u0161tevilo"
   ),
   reg_brezposelni = list(
     category = "Trg dela",
@@ -93,10 +107,12 @@ desezoniranje_config <- list(
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^Stevilo reg",
     table_id = "RB",
-    expected_columns = c("Število reg# brezposelnih"),
+    table_name = "Registrirani brezposelni",
+    expected_columns = c("Število reg. brezposelnih"),
     column_codes = c("period_id", "BP"),
     description = "Število registriranih brezposelnih",
-    interval = "M"
+    interval = "M",
+    unit = "\u0161tevilo"
   ),
   reg_brezposelni_stopnja = list(
     category = "Trg dela",
@@ -105,10 +121,12 @@ desezoniranje_config <- list(
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^Stopnja reg",
     table_id = "RB",
+    table_name = "Registrirani brezposelni",
     expected_columns = c("Stopnja brezposelnosti (v %)"),
     column_codes = c("period_id", "ST"),
-    description = "Število registriranih brezposelnih",
-    interval = "M"
+    description = "Stopnja registriranih brezposelnih",
+    interval = "M",
+    unit = "%"
   )
 )
 

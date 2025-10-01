@@ -13,10 +13,12 @@ A named list with 8 elements, each containing:
   \item{year_folder_pattern}{Pattern for identifying year folders}
   \item{month_folder_pattern}{Pattern for identifying month/quarter folders}
   \item{table_id}{Unique identifier for database table}
+  \item{table_name}{Description of table}
   \item{expected_columns}{Character vector of expected column names}
   \item{column_codes}{Code for column}
   \item{description}{Human-readable description of data source}
   \item{interval}{Interval, monthly (M) or quartery(Q)}
+  \item{unit}{name of unit}
 }
 }
 \usage{

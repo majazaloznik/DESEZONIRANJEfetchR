@@ -23,9 +23,15 @@ RoxygenNote: 7.3.3
 Depends: 
     R (>= 3.5)
 Imports: 
+    DBI,
     dplyr,
     purrr,
     readxl,
+    RPostgres,
     tibble,
     tidyr,
-    withr
+    withr,
+    UMARaccessR,
+    dbplyr
+Remotes:
+    majazaloznik/UMARaccessR
