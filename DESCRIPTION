@@ -32,6 +32,8 @@ Imports:
     tidyr,
     withr,
     UMARaccessR,
+    UMARimportR,
     dbplyr
 Remotes:
-    majazaloznik/UMARaccessR
+    majazaloznik/UMARaccessR,
+    majazaloznik/UMARimportR

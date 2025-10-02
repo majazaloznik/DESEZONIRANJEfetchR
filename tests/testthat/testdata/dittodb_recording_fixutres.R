@@ -58,10 +58,18 @@ stop_db_capturing()
 
 UMARimportR::insert_new_series(con_test, series_table)
 
-
 start_db_capturing()
 con_test <- make_test_connection()
 series_levels_table <- prepare_series_levels_table(con_test)
 stop_db_capturing()
 
 UMARimportR::insert_new_series_levels(con_test, series_levels_table)
+
+con_test <- make_test_connection()
+
+start_db_capturing()
+con_test <- make_test_connection()
+result <- DESEZ_import_structure(con_test)
+stop_db_capturing()
+
+
