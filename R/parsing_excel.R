@@ -4,7 +4,7 @@
 #' SA (seasonally adjusted) and Orig (original) sheets. Data from multiple
 #' files sharing the same table_id are joined on period_id.
 #'
-#' @param file_paths Named character vector of file paths, where names
+#' @param file_paths_df Named character vector of file paths, where names
 #'   correspond to entries in `desezoniranje_config`. Typically obtained
 #'   from `get_all_recent_files()`.
 #' @param config List of configurations. Defaults to `desezoniranje_config`.
