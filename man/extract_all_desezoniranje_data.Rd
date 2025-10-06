@@ -4,15 +4,15 @@
 \alias{extract_all_desezoniranje_data}
 \title{Extract all DESEZONIRANJE data from Excel files}
 \usage{
-extract_all_desezoniranje_data(file_paths, config = desezoniranje_config)
+extract_all_desezoniranje_data(file_paths_df, config = desezoniranje_config)
 }
 \arguments{
+\item{config}{List of configurations. Defaults to `desezoniranje_config`.
+Primarily for testing purposes.}
+
 \item{file_paths}{Named character vector of file paths, where names
 correspond to entries in `desezoniranje_config`. Typically obtained
 from `get_all_recent_files()`.}
-
-\item{config}{List of configurations. Defaults to `desezoniranje_config`.
-Primarily for testing purposes.}
 }
 \value{
 Named list of data frames. Names are in format "table_id_sheet"

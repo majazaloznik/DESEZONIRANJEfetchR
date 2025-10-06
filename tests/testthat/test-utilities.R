@@ -24,7 +24,7 @@ test_that("find_most_recent_file finds correct file in nested structure", {
     month_pattern = "\\d{2} \\d{4}"
   )
 
-  expect_match(result, "07 2025.*BP2024_2008.*\\.xls$")
+  expect_match(result$path, "07 2025.*BP2024_2008.*\\.xls$")
 })
 
 test_that("find_most_recent_file works with quarterly structure", {
@@ -44,7 +44,7 @@ test_that("find_most_recent_file works with quarterly structure", {
     month_pattern = "Q\\d \\d{4}"
   )
 
-  expect_match(result, "Q2 2025.*ILO brezposelni\\.xls$")
+  expect_match(result$path, "Q2 2025.*ILO brezposelni\\.xls$")
 })
 
 test_that("find_most_recent_file errors when no files match", {
@@ -119,11 +119,10 @@ test_that("get_all_recent_files returns named vector of file paths", {
 
   result <- get_all_recent_files(config = mock_config)
 
-  expect_type(result, "character")
-  expect_named(result, c("source_1", "source_2"))
-  expect_true(all(file.exists(result)))
-  expect_match(result["source_1"], "07 2025.*BP2024_2008\\.xls$")
-  expect_match(result["source_2"], "Q2 2025.*ILO brezposelni\\.xls$")
+  expect_type(result$file_path, "character")
+  expect_true(all(file.exists(result$file_path)))
+  expect_match(result$file_path[1], "07 2025.*BP2024_2008\\.xls$")
+  expect_match(result$file_path[2], "Q2 2025.*ILO brezposelni\\.xls$")
 })
 
 test_that("get_all_recent_files handles partial failures gracefully", {
@@ -152,10 +151,8 @@ test_that("get_all_recent_files handles partial failures gracefully", {
     result <- get_all_recent_files(config = mock_config),
     "Failed to find files for: invalid_source"
   )
-
-  expect_length(result, 1)
-  expect_named(result, "valid_source")
-  expect_true(file.exists(result["valid_source"]))
+  expect_length(result, 3)
+  expect_true(file.exists(result$file_path[1]))
 })
 
 test_that("get_all_recent_files returns empty vector when all sources fail", {
@@ -178,6 +175,5 @@ test_that("get_all_recent_files returns empty vector when all sources fail", {
     result <- get_all_recent_files(config = mock_config),
     "Failed to find files for: fail_1, fail_2"
   )
-
-  expect_length(result, 0)
+  expect_equal(nrow(result), 0)
 })

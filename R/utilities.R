@@ -73,7 +73,13 @@ find_most_recent_file <- function(base_path, file_pattern, year_pattern, month_p
     warning("Multiple files match pattern, using first: ", files[1])
   }
 
-  files[1]
+  file_path <- files[1]
+
+  # Return both path and timestamp
+  list(
+    path = file_path,
+    mtime = file.info(file_path)$mtime
+  )
 }
 
 
@@ -106,6 +112,7 @@ find_most_recent_file <- function(base_path, file_pattern, year_pattern, month_p
 #' @seealso [find_most_recent_file()]
 #'
 #' @export
+
 get_all_recent_files <- function(config = desezoniranje_config) {
   safely_find_file <- purrr::safely(find_most_recent_file)
 
@@ -130,7 +137,14 @@ get_all_recent_files <- function(config = desezoniranje_config) {
     warning("Failed to find files for: ", paste(failed_tables, collapse = ", "))
   }
 
-  # Return only successful results
+  # Return only successful results as data frame
   successes <- successes[!has_error]
-  purrr::map_chr(successes, identity)
+
+  data.frame(
+    source_name = names(successes),
+    file_path = purrr::map_chr(successes, "path"),
+    file_mtime = purrr::map_dbl(successes, ~as.numeric(.x$mtime)),
+    stringsAsFactors = FALSE
+  ) |>
+    dplyr::mutate(file_mtime = as.POSIXct(file_mtime, origin = "1970-01-01"))
 }

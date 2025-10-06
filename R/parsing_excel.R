@@ -22,7 +22,9 @@
 #' }
 #'
 #' @export
-extract_all_desezoniranje_data <- function(file_paths, config = desezoniranje_config) {
+extract_all_desezoniranje_data <- function(file_paths_df, config = desezoniranje_config) {
+  file_paths <- purrr::set_names(file_paths_df$file_path, file_paths_df$source_name)
+
   # Create extraction grid
   extraction_grid <- tidyr::crossing(
     file_name = names(file_paths),
