@@ -1,0 +1,307 @@
+---
+title: "DESEZONIRANJEfetchR: Importing Seasonally Adjusted Data from UMAR network drives"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{DESEZONIRANJEfetchR: Importing Seasonally Adjusted Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Overview
+
+`DESEZONIRANJEfetchR` imports seasonally adjusted data from internal DESEZONIRANJE network folders into the UMAR platform database. The package handles data from 9 Excel files across 4 thematic areas, extracting both seasonally adjusted (SA) and original (Orig) series.
+
+## Data Structure
+
+### Source Files
+
+The package processes 9 Excel files from the `O:/DESEZONIRANJE/` network drive:
+
+- **Bruto plače** (BP): Gross wages
+- **Delovno aktivni** (DA): Labour force (3 files)
+  - Total labour force
+  - Labour force excluding farmers
+  - Labour force disaggregated
+- **ILO brezposelnost** (ILO): ILO unemployment (3 files)
+  - Unemployed persons
+  - Unemployment rate
+  - Employed persons
+- **Registrirani brezposelni** (RB): Registered unemployment (2 files)
+  - Number of registered unemployed
+  - Registered unemployment rate
+
+### Excel File Structure Requirements
+
+All Excel files must follow a standardized structure:
+
+- **Row 1**: Title or descriptive text (skipped during import)
+- **Row 2**: Column headers
+- First column header is **empty** (reserved for period identifiers)
+- Subsequent columns contain variable names (e.g., "VSI", "BK", "PR")
+- **Row 3+**: Data rows
+- First column contains period identifiers (e.g., "2024M01", "2024Q1")
+- Subsequent columns contain numeric values
+
+**Required sheets:**
+
+- `SA`: Seasonally adjusted data
+- `Orig`: Original (non-adjusted) data
+
+Both sheets must have identical structure (same number of columns, same order).
+
+**Example structure:**
+```
+Row 1: [Seasonally Adjusted Labour Force Data]
+Row 2: [empty] | VSI    | BK     | PR
+Row 3: 2024M01  | 790098 | 755036 | 232196
+Row 4: 2024M02  | 793218 | 761130 | 233450
+...
+```
+
+### Database Structure
+
+Each source file contributes to one of 4 database tables, with two dimensions:
+
+1. **Meritev** (Measurement): Different breakdowns within each file
+2. **Seasonally adjusted**: Y/N indicator for SA vs. Original data
+
+This creates **34 series** total across the 4 tables. The series have the denominator `DESEZ`, so e.g. a series code might be `DESEZ--DA--BK--Y--M` for delovno aktivni, brez kmetov, seasonally adjusted (`Y`) monthly (`M`) data.
+
+## Workflow
+
+### 1. Initial Setup (One-time)
+
+Prepare and insert all structural metadata using the umbrella function:
+
+```{r setup}
+library(DESEZONIRANJEfetchR)
+con <- make_connection()
+
+# First, insert the source
+source_table <- prepare_source_table(con)
+UMARimportR::insert_new_source_table(con, source_table)
+
+# Then import all structural metadata
+DESEZ_import_structure(con)
+```
+
+The `DESEZ_import_structure()` function handles:
+
+- Table metadata
+- Category definitions and relationships
+- Table dimensions
+- Dimension levels
+- Series definitions
+- Series-dimension level mappings
+
+If more tables are added to the selection, this needs to be re-run
+
+### 2. Regular Data Import
+
+The main import function handles the complete data workflow:
+
+```{r import}
+result <- DESEZ_import_data_points(con)
+```
+
+This function:
+
+1. **Finds recent files**: Scans network folders for most recent Excel files
+2. **Checks vintages**: Compares file modification times to last imported vintages
+3. **Skips unchanged data**: Only processes files with new data
+4. **Inserts vintages**: Creates vintage records for all series
+5. **Extracts data**: Reads SA and Orig sheets from Excel files
+6. **Inserts datapoints**: Loads data into the database
+
+### 3. Post-Import Cleanup
+
+After importing, run standard UMAR cleanup functions:
+
+```{r cleanup}
+# Write vintage hashes
+UMARimportR::write_vintage_hash(con, "DESEZ")
+
+# Clean redundant vintages
+UMARimportR::clean_redundant_vintages(con, "DESEZ")
+
+DBI::dbDisconnect(con)
+```
+
+## Key Functions
+
+### Path Discovery
+
+- `find_most_recent_file()`: Navigates year/month folder structure to find latest file
+- `get_all_recent_files()`: Returns data frame with file paths and modification times
+
+### Data Extraction
+
+- `extract_all_desezoniranje_data()`: Reads Excel files and combines multi-source tables
+- `extract_single_sheet()`: Reads one sheet and applies column name mapping
+
+### Structure Preparation
+
+- `prepare_source_table()`: Prepares source metadata
+- `prepare_table_table()`: Prepares table metadata
+- `prepare_category_table()`: Prepares category definitions
+- `prepare_category_relationship_table()`: Prepares category hierarchies
+- `prepare_category_table_table()`: Links categories to tables
+- `prepare_table_dimensions_table()`: Prepares table dimensions
+- `prepare_dimension_levels_table()`: Prepares dimension level values
+- `prepare_series_table()`: Prepares series metadata
+- `prepare_series_levels_table()`: Prepares series-dimension mappings
+
+### Data Import
+
+- `DESEZ_import_structure()`: Orchestrates complete structural metadata import
+- `DESEZ_import_data_points()`: Orchestrates complete data import workflow
+- `prepare_vintage_table()`: Prepares vintage metadata with intelligent change detection
+- `prepare_datapoint_table()`: Transforms extracted data for database insertion
+
+## Configuration
+
+All source metadata is stored in `desezoniranje_config` (package data):
+
+```{r config}
+names(desezoniranje_config)
+#> [1] "bruto_placa"                 "delovno_aktivni"
+#> [3] "delovno_aktivni_brez_kmetov" "delovno_aktivni_disagr"
+#> [5] "ilo_brezposelni"            "ilo_stopnja"
+#> [7] "ilo_zaposleni"              "reg_brezposelni"
+#> [9] "reg_brezposelni_stopnja"
+
+# View configuration for one source
+desezoniranje_config$bruto_placa
+```
+
+Each configuration includes:
+
+- `category`: which database category the table falls under
+- `base_path`: Network folder location
+- `year_folder_pattern`: Pattern for year folders (e.g., "Leto \\d{4}")
+- `month_folder_pattern`: Pattern for month/quarter folders (e.g., "\\d{2} \\d{4}")
+- `file_pattern`: Regex to match file names
+- `table_id`: Database table code (e.g., "BP", "DA")
+- `table_name`: Human-readable table name
+- `expected_columns`: Original Excel column descriptions
+- `column_codes`: Column names for database (first is always "period_id")
+- `description`: Longer description
+- `interval`: Time interval ("M" for monthly, "Q" for quarterly)
+- `unit`: Measurement unit name
+
+## Automation
+
+For scheduled imports, create a script like:
+
+
+Schedule with Windows Task Scheduler:
+
+```batch
+@echo off
+"C:\Program Files\R\R-4.3.2\bin\Rscript.exe" "C:\path\to\DESEZ_import_script.R"
+```
+
+## Troubleshooting / FAQ
+
+### Adding New Data Sources
+
+To add a new Excel file to the import workflow:
+
+1. **Update configuration**: Add a new entry to `desezoniranje_config` in `data-raw/data.R`:
+
+```{r add_source}
+desezoniranje_config$new_source_name <- list(
+  category = "New category",
+  base_path = "O:/DESEZONIRANJE/Category/Subcategory",
+  year_folder_pattern = "Leto \\d{4}",
+  month_folder_pattern = "\\d{2} \\d{4}",
+  file_pattern = "^FilePattern\\d{4}",
+  table_id = "EXISTING_OR_NEW_TABLE_CODE",
+  table_name = "Human Readable Table Name",
+  expected_columns = c("Column 1 Description", "Column 2 Description"),
+  column_codes = c("period_id", "COL1", "COL2"),
+  descriptiom = "Longer text describing the table",
+  interval = "M",
+  unit = "število"
+)
+
+# Rebuild package data
+usethis::use_data(desezoniranje_config, overwrite = TRUE)
+```
+
+2. **Reinstall package**: Rebuild the package, push to github and reinstall the package to load new configuration.
+
+3. **Re-import structure**: Run `DESEZ_import_structure()` to update database metadata:
+
+```{r reimport}
+con <- DBI::dbConnect(...)
+DESEZ_import_structure(con)
+```
+
+This will insert the new table (if using a new `table_id`), new dimension levels, new series, and new series-level mappings. Existing data remains unchanged.
+
+4. **Import data**: Regular `DESEZ_import_data_points()` will now include the new source
+
+### Common Issues
+
+**Issue: "No matching files found"**
+
+- Check that `base_path` is correct and accessible
+- Verify `year_folder_pattern` matches actual folder names (e.g., "Leto 2025" vs "2025")
+- Verify `month_folder_pattern` matches actual folder structure
+- Ensure `file_pattern` correctly identifies Excel files
+
+**Issue: "No new vintages to insert"**
+
+- This is normal behaviour when files haven't been updated since last import
+- File modification times are compared to last published vintage dates
+- To force re-import, you would need to delete existing vintages (not recommended)
+
+**Issue: "Column count mismatch"**
+
+- Verify Excel file structure matches expectations (empty first column header)
+- Ensure `column_codes` length matches number of data columns in Excel
+- Check that both SA and Orig sheets have identical structure
+
+**Issue: Network drive access problems**
+
+- Ensure O: drive is mapped correctly
+- Check network connectivity
+- Verify user has read access to all DESEZONIRANJE folders
+- Function will skip inaccessible files and continue with others
+
+## Error Handling
+
+The package includes robust error handling:
+
+- **Missing files**: Warnings issued, other tables proceed
+- **No new data**: Early exit with informative message
+- **Database errors**: Proper cleanup and error propagation
+- **Network issues**: Graceful failure with file-specific errors
+- **Partial success**: Some tables can import even if others fail
+
+## Design Principles
+
+1. **Configuration-driven**: All metadata in `desezoniranje_config`
+2. **Modular structure**: Separate prepare/insert steps
+3. **Source-level vintage checking**: Handles multi-file tables correctly
+4. **Incremental imports**: Only processes changed data
+5. **Network-aware**: Handles temporary network issues gracefully
+6. **Fail-safe**: Partial failures don't corrupt database state
+
+## Notes
+
+- Requires access to `O:/DESEZONIRANJE/` network drive
+- Files must follow standard structure (row 1 = title, row 2 = headers, data starts row 3)
+- Period column must be first column and can be unnamed
+- SA and Orig sheets must exist in all files
+- Both sheets must have identical column structure
+- File modification times are used as publication dates for vintages
