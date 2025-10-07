@@ -97,3 +97,11 @@ start_db_capturing()
 con_test <- make_test_connection()
 result <- DESEZ_import_data_points(con_test)
 stop_db_capturing()
+
+
+
+series <- dplyr::bind_rows(UMARaccessR::sql_get_series_from_table_id(204, con_test),
+          UMARaccessR::sql_get_series_from_table_id(205, con_test),
+          UMARaccessR::sql_get_series_from_table_id(206, con_test),
+          UMARaccessR::sql_get_series_from_table_id(207, con_test))
+
