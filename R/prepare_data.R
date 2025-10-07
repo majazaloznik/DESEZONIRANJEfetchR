@@ -2,7 +2,9 @@
 #'
 #' Helper function that populates the vintage table with the new vintages. It gets
 #' the series ids from the database and adds the publication date from the file
-#' modification time.
+#' modification time. Checks each source file individually to determine if new
+#' vintages are needed, rather than checking at the table level, since multiple
+#' source files can contribute to a single database table.
 #'
 #' Returns table ready to insert into the `vintage` table with the
 #' UMARimportR::insert family of functions.
@@ -13,45 +15,99 @@
 #' @param config List of configurations. Defaults to `desezoniranje_config`.
 #' @param schema Schema to use for the connection, default is "platform"
 #'
-#' @return A dataframe with `series_id` and `published` columns
-#'   for all series across all tables.
+#' @return A dataframe with `series_id` and `published` columns for all series
+#'   across tables that have new source data. Returns empty dataframe if no
+#'   sources have new data.
+#'
+#' @details
+#' The function checks each source file individually by examining a representative
+#' series from that source. This is necessary because multiple source files can
+#' contribute to a single database table (e.g., the DA table has three source files).
+#' Only sources with file modification times newer than their last published vintage
+#' are processed. Sources are then grouped by table_id to create vintage records
+#' for all series in affected tables.
+#'
 #' @export
 prepare_vintage_table <- function(file_paths_df,
                                   con,
                                   config = desezoniranje_config,
                                   schema = "platform") {
-  # Get unique table_ids
-  unique_tables <- config |>
-    purrr::map_chr("table_id") |>
-    unique()
 
-  # For each table, prepare vintages
-  purrr::map_dfr(unique_tables, ~{
+  # Get all source names that need checking
+  source_names <- names(config)
+
+  # Check each source file individually
+  sources_to_process <- purrr::keep(source_names, ~{
+    source_name <- .x
+    source_config <- config[[source_name]]
+    table_code <- source_config$table_id
+
+    # Get file modification time for THIS specific source
+    file_mtime <- file_paths_df |>
+      dplyr::filter(source_name == !!source_name) |>
+      dplyr::pull(file_mtime)
+
+    if (length(file_mtime) == 0) {
+      message("Source ", source_name, " not found in file paths, skipping.")
+      return(FALSE)
+    }
+
+    # Build a representative series code from this source
+    # Use first column code (not period_id)
+    first_col <- source_config$column_codes[2]
+    interval <- source_config$interval
+
+    # Check both SA and Orig versions
+    series_codes <- c(
+      paste("DESEZ", table_code, first_col, "Y", interval, sep = "--"),
+      paste("DESEZ", table_code, first_col, "N", interval, sep = "--")
+    )
+
+    # Get last published date from either series
+    last_published <- NULL
+    for (series_code in series_codes) {
+      vintage_id <- UMARaccessR::sql_get_vintage_from_series_code(con, series_code, schema = schema)
+      if (!is.na(vintage_id) && !is.null(vintage_id)) {
+        last_published <- UMARaccessR::sql_get_date_published_from_vintage(vintage_id, con, schema)
+        break
+      }
+    }
+
+    # Compare dates (truncate to avoid timezone issues)
+    file_date <- as.Date(file_mtime)
+    last_published_date <- if (!is.null(last_published)) as.Date(last_published) else NULL
+
+    is_new <- is.null(last_published_date) || file_date > last_published_date
+
+    if (!is_new) {
+      message("Source ", source_name, " (table ", table_code, ") has no new data (last published: ",
+              last_published_date, ", file modified: ", file_date, "), skipping.")
+    }
+
+    is_new
+  })
+
+  if (length(sources_to_process) == 0) {
+    message("No sources have new data.")
+    return(data.frame(series_id = integer(0), published = as.POSIXct(character(0))))
+  }
+
+  # Group sources by table_id and prepare vintages
+  sources_by_table <- split(sources_to_process,
+                            purrr::map_chr(config[sources_to_process], "table_id"))
+
+  purrr::map_dfr(names(sources_by_table), ~{
     table_code <- .x
+    source_names_for_table <- sources_by_table[[.x]]
 
-    # Get table_id from database
     tbl_id <- UMARaccessR::sql_get_table_id_from_table_code(con, table_code, schema)
 
-    # Get all config entries for this table_id to find associated source files
-    table_config_entries <- config[purrr::map_chr(config, "table_id") == table_code]
-    source_names <- names(table_config_entries)
-
-    # Get the most recent file_mtime for this table (across all its sources)
+    # Get the most recent file time across all sources for this table
     published <- file_paths_df |>
-      dplyr::filter(source_name %in% source_names) |>
+      dplyr::filter(source_name %in% source_names_for_table) |>
       dplyr::pull(file_mtime) |>
       max()
 
-    # Check if this is a new vintage
-    last_published <- UMARaccessR::sql_get_last_publication_date_from_table_id(tbl_id, con, schema)
-
-    if (!is.null(last_published) && published <= last_published) {
-      warning(paste0("Vintages for table ", table_code,
-                     " are not newer than last publication, skipping."))
-      return(data.frame(series_id = integer(0), published = as.POSIXct(character(0))))
-    }
-
-    # Get all series for this table
     series_ids <- UMARaccessR::sql_get_series_ids_from_table_id(tbl_id, con, schema)
 
     data.frame(

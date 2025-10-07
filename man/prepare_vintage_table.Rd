@@ -22,15 +22,26 @@ typically from `get_all_recent_files()`}
 \item{schema}{Schema to use for the connection, default is "platform"}
 }
 \value{
-A dataframe with `series_id` and `published` columns
-  for all series across all tables.
+A dataframe with `series_id` and `published` columns for all series
+  across tables that have new source data. Returns empty dataframe if no
+  sources have new data.
 }
 \description{
 Helper function that populates the vintage table with the new vintages. It gets
 the series ids from the database and adds the publication date from the file
-modification time.
+modification time. Checks each source file individually to determine if new
+vintages are needed, rather than checking at the table level, since multiple
+source files can contribute to a single database table.
 }
 \details{
 Returns table ready to insert into the `vintage` table with the
 UMARimportR::insert family of functions.
+
+
+The function checks each source file individually by examining a representative
+series from that source. This is necessary because multiple source files can
+contribute to a single database table (e.g., the DA table has three source files).
+Only sources with file modification times newer than their last published vintage
+are processed. Sources are then grouped by table_id to create vintage records
+for all series in affected tables.
 }

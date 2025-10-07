@@ -9,14 +9,14 @@ source("tests/testthat/helper-connection.R")
 # stop_db_capturing()
 #
 #
-start_db_capturing()
-con_test <- make_test_connection()
-table_list <- prepare_table_table(con_test)
-purrr::walk(table_list, ~{
-  UMARimportR::insert_new_table_table( con = con_test, .x, "platform")
-})
-stop_db_capturing()
-
+# start_db_capturing()
+# con_test <- make_test_connection()
+# table_list <- prepare_table_table(con_test)
+# purrr::walk(table_list, ~{
+#   UMARimportR::insert_new_table_table( con = con_test, .x, "platform")
+# })
+# stop_db_capturing()
+#
 # start_db_capturing()
 # con_test <- make_test_connection()
 # category_table <- prepare_category_table(con = con_test)
@@ -99,9 +99,24 @@ result <- DESEZ_import_data_points(con_test)
 stop_db_capturing()
 
 
+start_db_capturing()
+con_test <- make_test_connection()
+for(i in 1:34){
+vintage_id <- UMARaccessR::sql_get_vintage_from_series_code(con_test, series$code[i])
+last_published <- UMARaccessR::sql_get_date_published_from_vintage(vintage_id, con_test)
+}
+stop_db_capturing()
+
+
+# vz <- UMARaccessR::sql_get_latest_vintages_for_table_id(207, con_test)$vintage_id
+# UMARimportR::delete_vintage(con_test, vz)
 
 series <- dplyr::bind_rows(UMARaccessR::sql_get_series_from_table_id(204, con_test),
           UMARaccessR::sql_get_series_from_table_id(205, con_test),
           UMARaccessR::sql_get_series_from_table_id(206, con_test),
           UMARaccessR::sql_get_series_from_table_id(207, con_test))
+# openxlsx::write.xlsx(series, "desez_serije.xlsx")
+
+
+
 
