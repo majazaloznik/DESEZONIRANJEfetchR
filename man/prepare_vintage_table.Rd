@@ -4,9 +4,17 @@
 \alias{prepare_vintage_table}
 \title{Prepare table to insert into `vintage` table}
 \usage{
-prepare_vintage_table(con, config = desezoniranje_config, schema = "platform")
+prepare_vintage_table(
+  file_paths_df,
+  con,
+  config = desezoniranje_config,
+  schema = "platform"
+)
 }
 \arguments{
+\item{file_paths_df}{Data frame with source_name, file_path, and file_mtime columns,
+typically from `get_all_recent_files()`}
+
 \item{con}{Connection to the database}
 
 \item{config}{List of configurations. Defaults to `desezoniranje_config`.}

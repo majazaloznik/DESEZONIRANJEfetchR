@@ -88,7 +88,9 @@ join_on_period <- function(data_list) {
 #'
 #' @keywords internal
 extract_single_sheet <- function(file_path, config, sheet) {
-  raw_data <- readxl::read_excel(file_path, sheet = sheet, skip = 1)
+  suppressMessages({
+    raw_data <- readxl::read_excel(file_path, sheet = sheet, skip = 1)
+  })
 
   raw_data[, 1:length(config$column_codes)] |>
     purrr::set_names(config$column_codes)

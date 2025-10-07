@@ -7,6 +7,8 @@
 #' Returns table ready to insert into the `vintage` table with the
 #' UMARimportR::insert family of functions.
 #'
+#' @param file_paths_df Data frame with source_name, file_path, and file_mtime columns,
+#'   typically from `get_all_recent_files()`
 #' @param con Connection to the database
 #' @param config List of configurations. Defaults to `desezoniranje_config`.
 #' @param schema Schema to use for the connection, default is "platform"
@@ -14,10 +16,10 @@
 #' @return A dataframe with `series_id` and `published` columns
 #'   for all series across all tables.
 #' @export
-prepare_vintage_table <- function(con,
+prepare_vintage_table <- function(file_paths_df,
+                                  con,
                                   config = desezoniranje_config,
                                   schema = "platform") {
-
   # Get unique table_ids
   unique_tables <- config |>
     purrr::map_chr("table_id") |>
@@ -35,7 +37,6 @@ prepare_vintage_table <- function(con,
     source_names <- names(table_config_entries)
 
     # Get the most recent file_mtime for this table (across all its sources)
-    file_paths_df <- get_all_recent_files()
     published <- file_paths_df |>
       dplyr::filter(source_name %in% source_names) |>
       dplyr::pull(file_mtime) |>
@@ -60,8 +61,6 @@ prepare_vintage_table <- function(con,
     )
   })
 }
-
-
 
 
 

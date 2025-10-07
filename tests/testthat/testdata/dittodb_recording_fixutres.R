@@ -92,3 +92,8 @@ purrr::walk(datapoint_tables, ~{
   UMARimportR::insert_prepared_data_points(.x, con = con_test, schema = "platform")
 })
 stop_db_capturing()
+
+start_db_capturing()
+con_test <- make_test_connection()
+result <- DESEZ_import_data_points(con_test)
+stop_db_capturing()

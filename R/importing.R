@@ -57,3 +57,57 @@ DESEZ_import_structure <- function(con,  config = desezoniranje_config,
   message("Series levels insert: ", insert_results$series_levels$count, " rows")
   invisible(insert_results)
 }
+
+
+
+#' Insert data points from DESEZONIRANJE
+#'
+#' Function to prepare and insert DESEZONIRANJE data points. The function first prepares
+#' the required vintages and inserts them, then prepares the data points
+#' table and inserts it. The function returns the results invisibly.
+#'
+#' This is a DESEZONIRANJE specific function, which should be followed by the generic
+#' UMARimportR function to write the vintage hashes and clean up redundant
+#' vintages.
+#'
+#' @param con Database connection
+#' @param config List of configurations. Defaults to desezoniranje_config.
+#' @param schema Schema name, defaults to "platform"
+#'
+#' @return Insertion results (invisibly)
+#' @export
+DESEZ_import_data_points <- function(con,
+                                     config = desezoniranje_config,
+                                     schema = "platform") {
+  message("Importing data points from DESEZONIRANJE into schema ", schema)
+  # Collect outputs into one result list
+  result <- list()
+  # Get file paths with timestamps
+  message("Finding most recent files...")
+  file_paths_df <- get_all_recent_files(config = config)
+  if (nrow(file_paths_df) == 0) {
+    warning("No files found, exiting.")
+    return(invisible(NULL))}
+  # Prepare vintage table
+  message("Preparing vintages...")
+  vintage_table <- prepare_vintage_table(file_paths_df, con, config, schema)
+  if (nrow(vintage_table) == 0) {
+    warning("No new vintages to insert, exiting.")
+    return(invisible(NULL))}
+  # Insert vintages
+  message("Inserting ", nrow(vintage_table), " vintage records...")
+  result$vintages <- UMARimportR::insert_new_vintage(con, vintage_table, schema)
+  # Extract data from Excel files
+  message("Extracting data from Excel files...")
+  data <- extract_all_desezoniranje_data(file_paths_df, config)
+  # Prepare datapoint tables for insertion
+  message("Preparing datapoint tables...")
+  datapoint_tables <- purrr::imap(data, ~{
+    prepare_datapoint_table(.x, .y, con, config, schema)})
+  # Insert data points
+  message("Inserting datapoints for ", length(datapoint_tables), " tables...")
+  result$datapoints <- purrr::map(datapoint_tables, ~{
+    UMARimportR::insert_prepared_data_points(.x, con = con, schema = schema)})
+  message("Import complete!")
+  invisible(result)
+}
