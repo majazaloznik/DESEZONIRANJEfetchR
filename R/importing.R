@@ -19,7 +19,7 @@ DESEZ_import_structure <- function(con,  config = desezoniranje_config,
   # Create list to store all results
   insert_results <- list()
   # prepare and insert table
-  table_table <- prepare_table_table <- function(con, config, schema, keep_vintage)
+  table_table <- prepare_table_table(con, config, schema, keep_vintage)
   insert_results$table <- UMARimportR::insert_new_table_table(con, table_table, schema)
   message("Table insert: ", insert_results$table$count, " rows")
   # preapre and insert category table
