@@ -153,7 +153,6 @@ prepare_category_table_table <- function(con, config = desezoniranje_config, sch
     dplyr::select(-table_code, -cat_names)
 }
 
-
 #' Prepare table to insert into `table_dimensions` table
 #'
 #' Helper function that manually prepares the table_dimensions table.
@@ -167,43 +166,40 @@ prepare_category_table_table <- function(con, config = desezoniranje_config, sch
 #' @return a dataframe with the `table_id`, `dimension_name`, `time` columns for
 #' each dimension of this table.
 #' @export
-
 prepare_table_dimensions_table <- function(con, config = desezoniranje_config, schema = "platform"){
   config |>
     purrr::map_dfr(~{
       data.frame(table_code = .x$table_id,
-                stringsAsFactors = FALSE)}) |>
+                 stringsAsFactors = FALSE)}) |>
     dplyr::distinct(table_code) |>
     dplyr::rowwise() |>
     dplyr::mutate(table_id = UMARaccessR::sql_get_table_id_from_table_code(con, table_code, schema)) |>
-    dplyr::mutate(dimension = "Meritev",
-                  is_time = rep(FALSE)) |>
+    dplyr::ungroup() |>
+    # Create two rows per table: one for each dimension
+    tidyr::crossing(dimension = c("Meritev", "Seasonally adjusted")) |>
+    dplyr::mutate(is_time = FALSE) |>
     dplyr::select(-table_code) |>
-    dplyr::arrange(table_id)
-
+    dplyr::arrange(table_id, dimension)
 }
-
-
 
 #' Prepare table to insert into `dimension_levels` table
 #'
 #' Helper function that manually prepares the dimension_levels for each
 #' table and gets their codes and text from desezoniranje_config.
-#' Returns a list of tables ready to insert into the `dimension_levels` table
+#' Returns a single dataframe ready to insert into the `dimension_levels` table
 #' with the db_writing family of functions.
 #'
 #' @param con Connection to the database
 #' @param config List of configurations. Defaults to `desezoniranje_config`.
 #' @param schema Schema name, defaults to "platform"
 #'
-#' @return A list of dataframes, one for each unique table_id. Each dataframe
-#'   contains `tab_dim_id`, `level_value`, and `level_text` columns.
+#' @return A dataframe with `tab_dim_id`, `level_value`, and `level_text` columns
+#'   for all tables and both dimensions (Meritev and Seasonally adjusted).
 #' @export
 #' @importFrom stats na.omit
 prepare_dimension_levels_table <- function(con,
                                            config = desezoniranje_config,
                                            schema = "platform") {
-
   unique_tables <- config |>
     purrr::map_chr("table_id") |>
     unique()
@@ -211,18 +207,25 @@ prepare_dimension_levels_table <- function(con,
   # For each unique table_id, prepare dimension levels
   purrr::map_dfr(unique_tables, ~{
     table_code <- .x
-    table_id <- UMARaccessR::sql_get_table_id_from_table_code(
-      con, table_code, schema)
+    table_id <- UMARaccessR::sql_get_table_id_from_table_code(con, table_code, schema)
+
     # Get dimension_id for "Meritev"
-    dim_id <- UMARaccessR::sql_get_dimension_id_from_table_id_and_dimension(
-      table_id, "Meritev", con, schema)
+    meritev_dim_id <- UMARaccessR::sql_get_dimension_id_from_table_id_and_dimension(
+      table_id, "Meritev", con, schema
+    )
+
+    # Get dimension_id for "Seasonally adjusted"
+    sa_dim_id <- UMARaccessR::sql_get_dimension_id_from_table_id_and_dimension(
+      table_id, "Seasonally adjusted", con, schema
+    )
+
     # Get all config entries for this table_id
     table_configs <- config[purrr::map_chr(config, "table_id") == table_code]
-    # Extract level_value and level_text from each config entry
-    levels_data <- purrr::map_dfr(table_configs, ~{
-      # Skip first element (period_id) in column_codes
+
+    # Extract Meritev levels
+    meritev_levels <- purrr::map_dfr(table_configs, ~{
       level_values <- .x$column_codes[-1]
-      level_texts <- .x$expected_columns # Already correct length
+      level_texts <- .x$expected_columns
 
       data.frame(
         level_value = level_values,
@@ -230,20 +233,28 @@ prepare_dimension_levels_table <- function(con,
         stringsAsFactors = FALSE
       )
     }) |>
-      dplyr::distinct(level_value, level_text)  # Remove duplicates if any
-    # Add dimension_id
-    levels_data |>
-      dplyr::mutate(tab_dim_id = dim_id) |>
+      dplyr::distinct(level_value, level_text) |>
+      dplyr::mutate(tab_dim_id = meritev_dim_id) |>
       dplyr::select(tab_dim_id, level_value, level_text)
-  })
+
+    # Create Seasonally adjusted levels
+    sa_levels <- data.frame(
+      tab_dim_id = sa_dim_id,
+      level_value = c("Y", "N"),
+      level_text = c("Seasonally adjusted", "Original"),
+      stringsAsFactors = FALSE
+    )
+
+    # Combine both dimension levels
+    dplyr::bind_rows(meritev_levels, sa_levels)
+  }) |>
+    na.omit()
 }
-
-
 #' Prepare table to insert into `series` table
 #'
 #' Prepares series metadata for all tables in desezoniranje_config.
-#' Creates one series for each unique table_id and column_code combination
-#' (excluding period_id).
+#' Creates one series for each unique combination of table_id, column_code,
+#' and seasonally adjusted status (Y/N).
 #'
 #' @param con Connection to the database
 #' @param config List of configurations. Defaults to `desezoniranje_config`.
@@ -262,32 +273,41 @@ prepare_series_table <- function(con,
   # For each unique table_id, prepare series
   purrr::map_dfr(unique_tables, ~{
     table_code <- .x
-    tbl_id <- UMARaccessR::sql_get_table_id_from_table_code(
-      con, table_code, schema)
+    tbl_id <- UMARaccessR::sql_get_table_id_from_table_code(con, table_code, schema)
     table_configs <- config[purrr::map_chr(config, "table_id") == table_code]
     interval <- table_configs[[1]]$interval
+
+    # For each config entry, create series for both SA and Original
     purrr::map_dfr(table_configs, ~{
-      # Skip first element (period_id) in column_codes
       column_codes <- .x$column_codes[-1]
       expected_cols <- .x$expected_columns
       table_name <- .x$table_name
-
-      # Get unit_id for THIS specific config entry
       unit_name <- .x$unit
-      unit_id <- UMARaccessR::sql_get_unit_id_from_unit_name(
-        unit_name, con, schema
-      )
+      unit_id <- UMARaccessR::sql_get_unit_id_from_unit_name(unit_name, con, schema)
 
-      data.frame(
-        table_id = tbl_id,
-        name_long = paste(table_name, expected_cols, sep = " - "),
-        code = paste("DESEZ", table_code, column_codes, interval, sep = "--"),
-        unit_id = unit_id,
-        interval_id = interval,
-        stringsAsFactors = FALSE
-      )
+      # Create two series per column: one with Y, one with N
+      tidyr::crossing(
+        data.frame(
+          column_code = column_codes,
+          expected_col = expected_cols,
+          stringsAsFactors = FALSE
+        ),
+        data.frame(
+          sa_code = c("Y", "N"),
+          sa_text = c("Seasonally adjusted", "Original"),
+          stringsAsFactors = FALSE
+        )
+      ) |>
+        dplyr::mutate(
+          table_id = tbl_id,
+          name_long = paste(table_name, expected_col, sa_text, sep = " - "),
+          code = paste("DESEZ", table_code, column_code, sa_code, interval, sep = "--"),
+          unit_id = unit_id,
+          interval_id = interval
+        ) |>
+        dplyr::select(table_id, name_long, code, unit_id, interval_id)
     }) |>
-      dplyr::distinct(code, .keep_all = TRUE)  # Remove any duplicates
+      dplyr::distinct(code, .keep_all = TRUE)
   })
 }
 
@@ -300,18 +320,17 @@ prepare_series_table <- function(con,
 #' db_writing family of functions.
 #'
 #'
-
 #' @param con connection to the database
 #' @param config List of configurations. Defaults to `desezoniranje_config`.
 #' @param schema schema name
 #'
-#' @return a dataframe with the `series_id`, `tab_dim_id`, `value` columns
-#' all the series-level combinatins for this table.
+#' @return a dataframe with the `series_id`, `tab_dim_id`, `level_value` columns
+#' all the series-level combinations for this table.
 #' @export
 #'
 prepare_series_levels_table <- function(con,
                                         config = desezoniranje_config,
-                                        schema = "platform") {  # Add default!
+                                        schema = "platform") {
   unique_tables <- config |>
     purrr::map_chr("table_id") |>
     unique()
@@ -320,18 +339,27 @@ prepare_series_levels_table <- function(con,
     table_code <- .x
     tbl_id <- UMARaccessR::sql_get_table_id_from_table_code(con, table_code, schema)
 
+    # Get non-time dimensions (should be 2: Meritev and Seasonally adjusted)
     dimz <- UMARaccessR::sql_get_dimensions_from_table_id(tbl_id, con, schema) |>
       dplyr::filter(is_time != TRUE) |>
+      dplyr::arrange(id) |>  # Ensure consistent ordering
       dplyr::pull(id)
 
+    # Parse series codes - now has 5 parts: source--table--meritev--sa--interval
     UMARaccessR::sql_get_series_from_table_id(tbl_id, con, schema) |>
       dplyr::filter(table_id == tbl_id) |>
       dplyr::select(table_id, id, code) |>
-      tidyr::separate(code, into = c("x1", "x2", paste0(dimz), "int"), sep = "--") |>
-      dplyr::select(series_id = id, dplyr::all_of(paste0(dimz))) |>
-      tidyr::pivot_longer(-series_id, names_to = "tab_dim_id") |>
-      dplyr::rename(level_value = value) |>
-      dplyr::mutate(tab_dim_id = as.integer(tab_dim_id)) |>
+      tidyr::separate(code, into = c("source", "table", "meritev", "sa", "interval"), sep = "--") |>
+      dplyr::select(series_id = id, meritev, sa) |>
+      tidyr::pivot_longer(-series_id, names_to = "dim_name", values_to = "level_value") |>
+      dplyr::mutate(
+        tab_dim_id = dplyr::case_when(
+          dim_name == "meritev" ~ dimz[1],
+          dim_name == "sa" ~ dimz[2],
+          TRUE ~ NA_integer_
+        )
+      ) |>
+      dplyr::select(series_id, tab_dim_id, level_value) |>
       as.data.frame()
   })
 }

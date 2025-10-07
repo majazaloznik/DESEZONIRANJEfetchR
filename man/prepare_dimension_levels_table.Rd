@@ -18,12 +18,12 @@ prepare_dimension_levels_table(
 \item{schema}{Schema name, defaults to "platform"}
 }
 \value{
-A list of dataframes, one for each unique table_id. Each dataframe
-  contains `tab_dim_id`, `level_value`, and `level_text` columns.
+A dataframe with `tab_dim_id`, `level_value`, and `level_text` columns
+  for all tables and both dimensions (Meritev and Seasonally adjusted).
 }
 \description{
 Helper function that manually prepares the dimension_levels for each
 table and gets their codes and text from desezoniranje_config.
-Returns a list of tables ready to insert into the `dimension_levels` table
+Returns a single dataframe ready to insert into the `dimension_levels` table
 with the db_writing family of functions.
 }

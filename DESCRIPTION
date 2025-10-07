@@ -33,7 +33,8 @@ Imports:
     withr,
     UMARaccessR,
     UMARimportR,
-    dbplyr
+    dbplyr,
+    stringr
 Remotes:
     majazaloznik/UMARaccessR,
     majazaloznik/UMARimportR

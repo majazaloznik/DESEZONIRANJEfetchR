@@ -7,9 +7,9 @@
 extract_all_desezoniranje_data(file_paths_df, config = desezoniranje_config)
 }
 \arguments{
-\item{file_paths_df}{Named character vector of file paths, where names
-correspond to entries in `desezoniranje_config`. Typically obtained
-from `get_all_recent_files()`.}
+\item{file_paths_df}{Data frame with source_name, file_path, and file_mtime columns,
+typically from `get_all_recent_files()`. set as a separate parameter for testing
+purposes}
 
 \item{config}{List of configurations. Defaults to `desezoniranje_config`.
 Primarily for testing purposes.}

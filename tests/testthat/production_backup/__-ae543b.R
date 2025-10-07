@@ -14,12 +14,5 @@ structure(list(id = unserialize(as.raw(c(0x1.6p+6, 0x1.4p+3,
     0x0p+0, 0x1p+4, 0x0p+0, 0x0p+0, 0x0p+0, 0x1p+0, 0x0p+0, 0x1p+2, 
     0x0p+0, 0x1.2p+3, 0x0p+0, 0x0p+0, 0x0p+0, 0x1.2p+3, 0x1.a4p+6, 
     0x1.b8p+6, 0x1.dp+6, 0x1.94p+6, 0x1.9cp+6, 0x1.94p+6, 0x1.c8p+6, 
-    0x1.bp+5, 0x1.ap+5, 0x0p+0, 0x0p+0, 0x0p+0, 0x1.fcp+7))), 
-    table_id = c(207L, 207L, 207L, 207L), name_long = c("Registrirani brezposelni - Število reg. brezposelnih - Original", 
-    "Registrirani brezposelni - Število reg. brezposelnih - Seasonally adjusted", 
-    "Registrirani brezposelni - Stopnja brezposelnosti (v %) - Original", 
-    "Registrirani brezposelni - Stopnja brezposelnosti (v %) - Seasonally adjusted"
-    ), unit_id = c(14L, 14L, 3L, 3L), code = c("DESEZ--RB--BP--N--M", 
-    "DESEZ--RB--BP--Y--M", "DESEZ--RB--ST--N--M", "DESEZ--RB--ST--Y--M"
-    ), interval_id = c("M", "M", "M", "M"), live = c(TRUE, TRUE, 
-    TRUE, TRUE)), row.names = c(NA, -4L), class = "data.frame")
+    0x1.bp+5, 0x1.ap+5, 0x0p+0, 0x0p+0, 0x0p+0, 0x1.fcp+7)))), row.names = c(NA, 
+-4L), class = "data.frame")

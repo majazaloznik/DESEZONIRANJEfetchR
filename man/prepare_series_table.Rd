@@ -19,6 +19,6 @@ A dataframe with columns: `table_id`, `name_long`, `code`,
 }
 \description{
 Prepares series metadata for all tables in desezoniranje_config.
-Creates one series for each unique table_id and column_code combination
-(excluding period_id).
+Creates one series for each unique combination of table_id, column_code,
+and seasonally adjusted status (Y/N).
 }

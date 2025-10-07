@@ -58,6 +58,7 @@ stop_db_capturing()
 
 UMARimportR::insert_new_series(con_test, series_table)
 
+
 start_db_capturing()
 con_test <- make_test_connection()
 series_levels_table <- prepare_series_levels_table(con_test)
@@ -72,4 +73,22 @@ con_test <- make_test_connection()
 result <- DESEZ_import_structure(con_test)
 stop_db_capturing()
 
+start_db_capturing()
+con_test <- make_test_connection()
+result <- prepare_vintage_table(con_test)
+stop_db_capturing()
+UMARimportR::insert_new_vintage(con_test, result)
 
+
+start_db_capturing()
+con_test <- make_test_connection()
+file_paths_df <- get_all_recent_files()
+data <- extract_all_desezoniranje_data(file_paths_df)
+datapoint_tables <- purrr::imap(data, ~{
+  prepare_datapoint_table(.x, .y, con_test)
+})
+
+purrr::walk(datapoint_tables, ~{
+  UMARimportR::insert_prepared_data_points(.x, con = con_test, schema = "platform")
+})
+stop_db_capturing()

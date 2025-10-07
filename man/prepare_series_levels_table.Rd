@@ -18,8 +18,8 @@ prepare_series_levels_table(
 \item{schema}{schema name}
 }
 \value{
-a dataframe with the `series_id`, `tab_dim_id`, `value` columns
-all the series-level combinatins for this table.
+a dataframe with the `series_id`, `tab_dim_id`, `level_value` columns
+all the series-level combinations for this table.
 }
 \description{
 Helper function that extracts the individual levels for each series and
