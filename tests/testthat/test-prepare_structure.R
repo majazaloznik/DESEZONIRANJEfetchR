@@ -11,9 +11,9 @@ test_that("prepare table table", {
   dittodb::with_mock_db({
     con_test <- make_test_connection()
     table_table <- prepare_table_table(con_test)
-    expect_equal(nrow(table_table), 4)
-    expect_equal(ncol(table_table), 6)
-    expect_true(all(names(table_table) %in%
+    expect_equal(length(table_table), 4)
+    expect_equal(ncol(table_table[[1]]), 6)
+    expect_true(all(names(table_table[[1]]) %in%
                       c("name", "notes", "source_id", "url", "code", "keep_vintage")))
   })
 })

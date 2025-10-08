@@ -56,7 +56,12 @@ prepare_table_table <- function(con,
     dplyr::mutate(source_id = source_id,
                   url = "",
                   notes = NA_character_,
-                  keep_vintage = keep_vintage)}
+                  keep_vintage = keep_vintage)
+  # Split into list by table code for easy iteration
+  table_metadata |>
+    dplyr::group_by(code) |>
+    dplyr::group_split() |>
+    purrr::set_names(table_metadata$code)}
 
 
 #' Prepare table to insert into `category` table
