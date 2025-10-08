@@ -148,3 +148,30 @@ get_all_recent_files <- function(config = desezoniranje_config) {
   ) |>
     dplyr::mutate(file_mtime = as.POSIXct(file_mtime, origin = "1970-01-01"))
 }
+
+
+#' Helper function to format period IDs
+#'
+#' converts date to period id
+#'
+#' @param dates date
+#' @param interval M or Q
+#'
+#' @keywords internal
+format_period_id <- function(dates, interval) {
+  dates <- as.Date(dates)
+  year <- format(dates, "%Y")
+
+  if (interval == "M") {
+    # Monthly: 2025M08
+    month <- format(dates, "%m")
+    paste0(year, "M", month)
+  } else if (interval == "Q") {
+    # Quarterly: 2025Q2
+    quarter <- as.integer(format(dates, "%m"))
+    quarter <- ceiling(quarter / 3)
+    paste0(year, "Q", quarter)
+  } else {
+    stop("Unsupported interval: ", interval)
+  }
+}

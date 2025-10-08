@@ -4,7 +4,8 @@ test_that("extract_single_sheet reads and renames columns correctly", {
   test_file <- testthat::test_path("testdata", "test_single.xlsx")
 
   config <- list(
-    column_codes = c("period_id", "value_1", "value_2")
+    column_codes = c("period_id", "value_1", "value_2"),
+    interval = "M"
   )
 
   result <- extract_single_sheet(test_file, config, "SA")
@@ -19,7 +20,8 @@ test_that("extract_single_sheet reads Orig sheet correctly", {
   test_file <- testthat::test_path("testdata", "test_single.xlsx")
 
   config <- list(
-    column_codes = c("period_id", "value_1", "value_2")
+    column_codes = c("period_id", "value_1", "value_2"),
+    interval = "M"
   )
 
   result <- extract_single_sheet(test_file, config, "Orig")
@@ -32,7 +34,8 @@ test_that("extract_single_sheet ignores extra columns", {
   test_file <- testthat::test_path("testdata", "test_extra_cols.xlsx")
 
   config <- list(
-    column_codes = c("period_id", "col_1", "col_2")  # Only want first 3
+    column_codes = c("period_id", "col_1", "col_2"),  # Only want first 3
+    interval = "M"
   )
 
   result <- extract_single_sheet(test_file, config, "SA")
@@ -42,9 +45,9 @@ test_that("extract_single_sheet ignores extra columns", {
 })
 
 test_that("join_on_period combines dataframes with matching periods", {
-  df1 <- data.frame(period_id = c("2024M01", "2024M02", "2024M03"),
+  df1 <- data.frame(period_id = c("01/01/2024", "01/02/2024", "01/03/2024"),
                     val_a = c(10, 20, 30))
-  df2 <- data.frame(period_id = c("2024M01", "2024M02", "2024M03"),
+  df2 <- data.frame(period_id = c("01/01/2024", "01/02/2024", "01/03/2024"),
                     val_b = c(40, 50, 60))
 
   result <- join_on_period(list(df1, df2))
@@ -85,7 +88,8 @@ test_that("extract_all_desezoniranje_data integrates single file workflow", {
   mock_config <- list(
     test_single = list(
       table_id = "single_table",
-      column_codes = c("period_id", "value_1", "value_2")
+      column_codes = c("period_id", "value_1", "value_2"),
+      interval = "M"
     )
   )
 
@@ -113,11 +117,13 @@ test_that("extract_all_desezoniranje_data joins multi-source files correctly", {
   mock_config <- list(
     multi_source_a = list(
       table_id = "multi_table",
-      column_codes = c("period_id", "value_a")
+      column_codes = c("period_id", "value_a"),
+      interval = "M"
     ),
     multi_source_b = list(
       table_id = "multi_table",
-      column_codes = c("period_id", "value_b")
+      column_codes = c("period_id", "value_b"),
+      interval = "M"
     )
   )
 

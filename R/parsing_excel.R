@@ -93,7 +93,8 @@ extract_single_sheet <- function(file_path, config, sheet) {
   })
 
   raw_data[, 1:length(config$column_codes)] |>
-    purrr::set_names(config$column_codes)
+    purrr::set_names(config$column_codes) |>
+    dplyr::mutate(period_id = format_period_id(period_id, config$interval))
 }
 
 
