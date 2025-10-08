@@ -38,7 +38,8 @@ Imports:
     UMARaccessR,
     UMARimportR,
     dbplyr,
-    stringr
+    stringr,
+    jsonlite
 Remotes:
     majazaloznik/UMARaccessR,
     majazaloznik/UMARimportR

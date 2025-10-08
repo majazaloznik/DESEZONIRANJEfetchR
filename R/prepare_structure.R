@@ -55,7 +55,7 @@ prepare_table_table <- function(con,
   table_metadata <- table_info |>
     dplyr::mutate(source_id = source_id,
                   url = "",
-                  notes = NULL,
+                  notes = jsonlite::toJSON(list(), auto_unbox = TRUE),
                   keep_vintage = keep_vintage)
   # Split into list by table code for easy iteration
   table_metadata |>
