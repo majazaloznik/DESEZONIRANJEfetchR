@@ -215,7 +215,7 @@ Schedule with Windows Task Scheduler:
 
 To add a new Excel file to the import workflow:
 
-1. **Update configuration**: Add a new entry to `desezoniranje_config` in `data-raw/data.R`:
+1. **Update configuration**: Add a new entry to `desezoniranje_config` in `data-raw/data.R`, and *make sure you add it at the end of the list!*:
 
 ```{r add_source}
 desezoniranje_config$new_source_name <- list(

@@ -127,6 +127,21 @@ desezoniranje_config <- list(
     description = "Stopnja registriranih brezposelnih",
     interval = "M",
     unit = "%"
+  ),
+  bruto_placa_real = list(
+    category = "Bruto pla\u010da",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Bruto plača/Novo (realne)",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = "\\d{2} \\d{4}",
+    file_pattern = "^BP",
+    table_id = "BPR",
+    table_name = "Bruto plače realne",
+    expected_columns = c("Skupaj", "Zasebni sektor", "Javni sektor",
+                         "Sektor država", "Javne družbe"),
+    column_codes = c("period_id", "SK", "ZS", "JS", "SD", "JD"),
+    description = "Bruto plače v javnem in zasebnem sektorju - realne",
+    interval = "M",
+    unit = "eur"
   )
 )
 

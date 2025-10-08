@@ -96,27 +96,38 @@ stop_db_capturing()
 start_db_capturing()
 con_test <- make_test_connection()
 result <- DESEZ_import_data_points(con_test)
+UMARaccessR::sql_get_category_id_from_name("Bruto plače realne", con_test, 6)
+UMARaccessR::sql_get_table_id_from_table_code(con_test, "BPR")
+UMARaccessR::sql_get_dimension_id_from_table_id_and_dimension(253, "Seasonally adjusted", con_test)
+UMARaccessR::sql_get_dimensions_from_table_id(253, con_test)
+UMARaccessR::sql_get_series_from_table_id(253, con_test)
 stop_db_capturing()
 
+#
+# start_db_capturing()
+# con_test <- make_test_connection()
+# for(i in 1:34){
+# vintage_id <- UMARaccessR::sql_get_vintage_from_series_code(con_test, series$code[i])
+# last_published <- UMARaccessR::sql_get_date_published_from_vintage(vintage_id, con_test)
+# }
+# stop_db_capturing()
 
-start_db_capturing()
-con_test <- make_test_connection()
-for(i in 1:34){
-vintage_id <- UMARaccessR::sql_get_vintage_from_series_code(con_test, series$code[i])
-last_published <- UMARaccessR::sql_get_date_published_from_vintage(vintage_id, con_test)
-}
-stop_db_capturing()
+
+# vz <- UMARaccessR::sql_get_latest_vintages_for_table_id(207, con_test)$vintage_id
+# UMARimportR::delete_vintage(con_test, vz)
+#
+series <- dplyr::bind_rows(UMARaccessR::sql_get_series_from_table_id(204, con_test),
+          UMARaccessR::sql_get_series_from_table_id(205, con_test),
+          UMARaccessR::sql_get_series_from_table_id(206, con_test),
+          UMARaccessR::sql_get_series_from_table_id(207, con_test),
+          UMARaccessR::sql_get_series_from_table_id(233, con_test))
+# openxlsx::write.xlsx(series, "desez_serije.xlsx")
 
 
 # vz <- UMARaccessR::sql_get_latest_vintages_for_table_id(207, con_test)$vintage_id
 # UMARimportR::delete_vintage(con_test, vz)
 
-series <- dplyr::bind_rows(UMARaccessR::sql_get_series_from_table_id(204, con_test),
-          UMARaccessR::sql_get_series_from_table_id(205, con_test),
-          UMARaccessR::sql_get_series_from_table_id(206, con_test),
-          UMARaccessR::sql_get_series_from_table_id(207, con_test))
-# openxlsx::write.xlsx(series, "desez_serije.xlsx")
+con_test <- make_test_connection()
+result <- DESEZ_import_structure(con_test)
 
-
-
-
+UMARaccessR::sql_get_category_id_from_name("Bruto plače realne", con_test, 6)
