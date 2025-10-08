@@ -2,7 +2,7 @@
 desezoniranje_config <- list(
   bruto_placa = list(
     category = "Bruto pla\u010da",
-    base_path = "O:/DESEZONIRANJE/Bruto plača/Novo",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Bruto plača/Novo",
     year_folder_pattern = "\\d{4}",
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^BP",
@@ -17,7 +17,7 @@ desezoniranje_config <- list(
   ),
   delovno_aktivni = list(
     category = "Trg dela",
-    base_path = "O:/DESEZONIRANJE/Trg dela/Delovno aktivni/Vsi",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/Delovno aktivni/Vsi",
     year_folder_pattern = "Leto \\d{4}",
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^DA",
@@ -31,7 +31,7 @@ desezoniranje_config <- list(
   ),
   delovno_aktivni_brez_kmetov = list(
     category = "Trg dela",
-    base_path = "O:/DESEZONIRANJE/Trg dela/Delovno aktivni/Brez kmetov",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/Delovno aktivni/Brez kmetov",
     year_folder_pattern = "Leto \\d{4}",
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^DA brez",
@@ -45,7 +45,7 @@ desezoniranje_config <- list(
   ),
   delovno_aktivni_disagr = list(
     category = "Trg dela",
-    base_path = "O:/DESEZONIRANJE/Trg dela/Delovno aktivni po podpodročjih dejavnosti/Skupaj",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/Delovno aktivni po podpodročjih dejavnosti/Skupaj",
     year_folder_pattern = "Leto \\d{4}",
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^DA",
@@ -60,7 +60,7 @@ desezoniranje_config <- list(
   ),
   ilo_brezposelni = list(
     category = "Trg dela",
-    base_path = "O:/DESEZONIRANJE/Trg dela/ILO/Brezposelni",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/ILO/Brezposelni",
     year_folder_pattern = "Leto \\d{4}",
     month_folder_pattern = "Q\\d \\d{4}",
     file_pattern = "^ILO",
@@ -74,7 +74,7 @@ desezoniranje_config <- list(
   ),
   ilo_stopnja = list(
       category = "Trg dela",
-      base_path = "O:/DESEZONIRANJE/Trg dela/ILO/Stopnja brezposelnosti",
+      base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/ILO/Stopnja brezposelnosti",
       year_folder_pattern = "Leto \\d{4}",
       month_folder_pattern = "Q\\d \\d{4}",
       file_pattern = "^Stopnja ILO",
@@ -88,7 +88,7 @@ desezoniranje_config <- list(
     ),
   ilo_zaposleni = list(
     category = "Trg dela",
-    base_path = "O:/DESEZONIRANJE/Trg dela/ILO/Zaposleni",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/ILO/Zaposleni",
     year_folder_pattern = "Leto \\d{4}",
     month_folder_pattern = "Q\\d \\d{4}",
     file_pattern = "^ILO Zaposleni",
@@ -102,7 +102,7 @@ desezoniranje_config <- list(
   ),
   reg_brezposelni = list(
     category = "Trg dela",
-    base_path = "O:/DESEZONIRANJE/Trg dela/Registrirani brezposelni/Stevilo",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/Registrirani brezposelni/Stevilo",
     year_folder_pattern = "Leto \\d{4}",
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^Stevilo reg",
@@ -116,7 +116,7 @@ desezoniranje_config <- list(
   ),
   reg_brezposelni_stopnja = list(
     category = "Trg dela",
-    base_path = "O:/DESEZONIRANJE/Trg dela/Registrirani brezposelni/Stopnje/Skupaj",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/Registrirani brezposelni/Stopnje/Skupaj",
     year_folder_pattern = "Leto \\d{4}",
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^Stopnja reg",
