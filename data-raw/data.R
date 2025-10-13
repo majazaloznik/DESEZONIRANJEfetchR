@@ -143,16 +143,16 @@ desezoniranje_config <- list(
     interval = "M",
     unit = "eur"
   ),
-  bruto_placa_real = list(
+  masa_neto_plac = list(
     category = "Realna masa neto plač",
-    base_path = "\\\\192.168.38.7\\public$\\Potrošnja/realna masa neto plač",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Potrošnja/realna masa neto plač",
     year_folder_pattern = "\\d{4}",
     month_folder_pattern = "\\d{2} \\d{4}",
     file_pattern = "^Realna",
     table_id = "RMNP",
     table_name = "Realna masa neto plač",
     expected_columns = c("MNP realno"),
-    column_codes = c("MNPr"),
+    column_codes = c("period_id", "MNPr"),
     description = "Realna masa neto plač",
     interval = "M",
     unit = "eur"
