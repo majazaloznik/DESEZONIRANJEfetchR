@@ -27,22 +27,26 @@ test_that("DESEZ_import_data_points works correctly", {
       ILO_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(300, 310)),
       ILO_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(305, 315)),
       RB_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(400, 410)),
-      RB_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(405, 415))
+      RB_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(405, 415)),
+      BPR_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(500, 510)),
+      BPR_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(505, 515)),
+      RMNP_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(600, 610)),
+      RMNP_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(605, 615))
     )
 
-    mock_vintage_result <- list(count = 34)
+    mock_vintage_result <- list(count = 40)
     mock_datapoint_result <- list(
       periods_inserted = 0,
       datapoints_inserted = 2,
       flags_inserted = 0
     )
 
-    # Stub file and data extraction
+    # Stub at multiple levels
     mockery::stub(DESEZ_import_data_points, 'get_all_recent_files', mock_file_paths)
     mockery::stub(DESEZ_import_data_points, 'extract_all_desezoniranje_data', mock_extracted_data)
 
-    # Stub vintage check to return NA (no previous vintages = all sources are new)
-    mockery::stub(DESEZ_import_data_points, 'UMARaccessR::sql_get_vintage_from_series_code', NA_integer_)
+    # Stub inside prepare_vintage_table (this is where it's actually called)
+    mockery::stub(prepare_vintage_table, 'UMARaccessR::sql_get_vintage_from_series_code', NA_integer_)
 
     # Stub insert functions
     mockery::stub(DESEZ_import_data_points, 'UMARimportR::insert_new_vintage', mock_vintage_result)
@@ -50,9 +54,9 @@ test_that("DESEZ_import_data_points works correctly", {
 
     result <- DESEZ_import_data_points(con_test)
 
-    expect_named(result, c("vintages", "datapoints"))
+    expect_equal(names(result), c("vintages", "datapoints"))
     expect_equal(result$vintages, mock_vintage_result)
-    expect_equal(length(result$datapoints), 8)
+    expect_equal(length(result$datapoints), 12)
     expect_true(all(purrr::map_lgl(result$datapoints, is.list)))
   })
 })
