@@ -19,6 +19,11 @@ test_that("DESEZ_import_data_points works correctly", {
       stringsAsFactors = FALSE
     )
 
+    mock_vintage_table <- data.frame(
+      series_id = 1:40,
+      published = rep(as.POSIXct("2025-01-15 10:00:00"), 40)
+    )
+
     mock_extracted_data <- list(
       BP_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(100, 110)),
       BP_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(105, 115)),
@@ -31,8 +36,33 @@ test_that("DESEZ_import_data_points works correctly", {
       BPR_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(500, 510)),
       BPR_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(505, 515)),
       RMNP_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(600, 610)),
-      RMNP_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(605, 615))
+      RMNP_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(605, 615)),
+      DBN_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(600, 610)),
+      DBN_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(605, 615)),
+      DBR_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(600, 610)),
+      DBR_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(605, 615)),
+      ST_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(600, 610)),
+      ST_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(605, 615)),
+      PDT_Orig = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(600, 610)),
+      PDT_SA = data.frame(period_id = c("2024M01", "2024M02"), col1 = c(605, 615))
     )
+
+    # Mock the prepared datapoint tables (what prepare_datapoint_table returns)
+    mock_datapoint_tables <- purrr::imap(mock_extracted_data, ~{
+      list(
+        data = data.frame(
+          time = c("2024M01", "2024M02"),
+          Meritev = c("col1", "col1"),
+          Seasonally.adjusted = if(grepl("SA$", .y)) "Y" else "N",
+          value = c(100, 110),
+          flag = c("", "")
+        ),
+        table_id = 1,
+        dimension_names = c("Meritev", "Seasonally.adjusted"),
+        dimension_ids = c(1, 2),
+        interval_id = "M"
+      )
+    })
 
     mock_vintage_result <- list(count = 40)
     mock_datapoint_result <- list(
@@ -41,14 +71,15 @@ test_that("DESEZ_import_data_points works correctly", {
       flags_inserted = 0
     )
 
-    # Stub at multiple levels
+    # Stub everything
+    mockery::stub(DESEZ_import_data_points, 'prepare_vintage_table', mock_vintage_table)
     mockery::stub(DESEZ_import_data_points, 'get_all_recent_files', mock_file_paths)
     mockery::stub(DESEZ_import_data_points, 'extract_all_desezoniranje_data', mock_extracted_data)
 
-    # Stub inside prepare_vintage_table (this is where it's actually called)
-    mockery::stub(prepare_vintage_table, 'UMARaccessR::sql_get_vintage_from_series_code', NA_integer_)
+    # Stub the imap that calls prepare_datapoint_table
+    mockery::stub(DESEZ_import_data_points, 'purrr::imap',
+                  function(data, fn) mock_datapoint_tables)
 
-    # Stub insert functions
     mockery::stub(DESEZ_import_data_points, 'UMARimportR::insert_new_vintage', mock_vintage_result)
     mockery::stub(DESEZ_import_data_points, 'UMARimportR::insert_prepared_data_points', mock_datapoint_result)
 
@@ -56,7 +87,7 @@ test_that("DESEZ_import_data_points works correctly", {
 
     expect_equal(names(result), c("vintages", "datapoints"))
     expect_equal(result$vintages, mock_vintage_result)
-    expect_equal(length(result$datapoints), 12)
+    expect_equal(length(result$datapoints), 20)
     expect_true(all(purrr::map_lgl(result$datapoints, is.list)))
   })
 })

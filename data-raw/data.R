@@ -156,6 +156,62 @@ desezoniranje_config <- list(
     description = "Realna masa neto plač",
     interval = "M",
     unit = "eur"
+  ),
+  prenocitve = list(
+    category = "Prenočitve",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Potrošnja/prenočitve/domače prenočitve/izračuni",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = "\\d{2} \\d{4}",
+    file_pattern = "^Prenočitve",
+    table_id = "PT",
+    table_name = "Prenočitve turistov",
+    expected_columns = c("domači"),
+    column_codes = c("period_id", "PDT"),
+    description = "Prenočitve domačih turistov",
+    interval = "M",
+    unit = "število"
+  ),
+  davcne_nom = list(
+    category = "Davčne blagajne",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Potrošnja/Davčne blagajne/nominalni zneski/Desezionirane serije",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = "\\d{2} \\d{4}",
+    file_pattern = "^Davčne",
+    table_id = "DB",
+    table_name = "Davčne blagajne",
+    expected_columns = c("znesek (v mio EUR)"),
+    column_codes = c("period_id", "DBN"),
+    description = "Davčne blagajne, nominalni zneski",
+    interval = "M",
+    unit = "mio eur"
+  ),
+  davcne_real = list(
+    category = "Davčne blagajne",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Potrošnja/Davčne blagajne/realni indeksi",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = "\\d{2} \\d{4}",
+    file_pattern = "^Davčne",
+    table_id = "DB",
+    table_name = "Davčne blagajne",
+    expected_columns = c("Davčne blagajne, realno, na povprečje 2019"),
+    column_codes = c("period_id", "DBR"),
+    description = "Davčne blagajne, realni indeksi na povprečje 2019",
+    interval = "M",
+    unit = "indeks"
+  ),
+  transferji = list(
+    category = "Socialni transferji",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Potrošnja/socialni transferji",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = "\\d{2} \\d{4}",
+    file_pattern = "^socialni",
+    table_id = "ST",
+    table_name = "Socialni transferji",
+    expected_columns = c("Socialni transferji"),
+    column_codes = c("period_id", "ST"),
+    description = "Socialni transferji indeks na povprečje 2008",
+    interval = "M",
+    unit = "indeks"
   )
 )
 

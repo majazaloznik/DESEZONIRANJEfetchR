@@ -95,12 +95,23 @@ stop_db_capturing()
 
 start_db_capturing()
 con_test <- make_test_connection()
+# UMARaccessR::sql_get_category_id_from_name("Prenočitve", con_test, 6)
+# UMARaccessR::sql_get_category_id_from_name("Davčne blagajne", con_test, 6)
+# UMARaccessR::sql_get_category_id_from_name("Socialni transferji", con_test, 6)
+# UMARaccessR::sql_get_table_id_from_table_code(con_test, "ST")
+# UMARaccessR::sql_get_table_id_from_table_code(con_test, "DB")
+# UMARaccessR::sql_get_table_id_from_table_code(con_test, "PT")
+# UMARaccessR::sql_get_dimension_id_from_table_id_and_dimension(321, "Original", con_test)
+# UMARaccessR::sql_get_dimensions_from_table_id(321, con_test)
+# UMARaccessR::sql_get_series_from_table_id(321, con_test)
+# UMARaccessR::sql_get_dimension_id_from_table_id_and_dimension(316, "Original", con_test)
+# UMARaccessR::sql_get_dimensions_from_table_id(316, con_test)
+# UMARaccessR::sql_get_series_from_table_id(316, con_test)
+# UMARaccessR::sql_get_dimension_id_from_table_id_and_dimension(318, "Original", con_test)
+# UMARaccessR::sql_get_dimensions_from_table_id(318, con_test)
+# UMARaccessR::sql_get_series_from_table_id(318, con_test)
 result <- DESEZ_import_data_points(con_test)
-UMARaccessR::sql_get_category_id_from_name("Bruto plače realne", con_test, 6)
-UMARaccessR::sql_get_table_id_from_table_code(con_test, "BPR")
-UMARaccessR::sql_get_dimension_id_from_table_id_and_dimension(253, "Seasonally adjusted", con_test)
-UMARaccessR::sql_get_dimensions_from_table_id(253, con_test)
-UMARaccessR::sql_get_series_from_table_id(253, con_test)
+
 stop_db_capturing()
 
 #
@@ -116,11 +127,11 @@ stop_db_capturing()
 # vz <- UMARaccessR::sql_get_latest_vintages_for_table_id(207, con_test)$vintage_id
 # UMARimportR::delete_vintage(con_test, vz)
 #
-series <- dplyr::bind_rows(UMARaccessR::sql_get_series_from_table_id(204, con_test),
-          UMARaccessR::sql_get_series_from_table_id(205, con_test),
-          UMARaccessR::sql_get_series_from_table_id(206, con_test),
-          UMARaccessR::sql_get_series_from_table_id(207, con_test),
-          UMARaccessR::sql_get_series_from_table_id(233, con_test))
+# series <- dplyr::bind_rows(UMARaccessR::sql_get_series_from_table_id(204, con_test),
+#           UMARaccessR::sql_get_series_from_table_id(205, con_test),
+#           UMARaccessR::sql_get_series_from_table_id(206, con_test),
+#           UMARaccessR::sql_get_series_from_table_id(207, con_test),
+#           UMARaccessR::sql_get_series_from_table_id(233, con_test))
 # openxlsx::write.xlsx(series, "desez_serije.xlsx")
 
 
@@ -129,5 +140,5 @@ series <- dplyr::bind_rows(UMARaccessR::sql_get_series_from_table_id(204, con_te
 
 con_test <- make_test_connection()
 result <- DESEZ_import_structure(con_test)
+result <- DESEZ_import_data_points(con_test)
 
-UMARaccessR::sql_get_category_id_from_name("Bruto plače realne", con_test, 6)
