@@ -212,6 +212,62 @@ desezoniranje_config <- list(
     description = "Socialni transferji indeks na povprečje 2008",
     interval = "M",
     unit = "indeks"
+  ),
+    cest_promet = list(
+    category = "Promet",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Promet/cest",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = "Q\\d \\d{4}",
+    file_pattern = "^CB",
+    table_id = "PR",
+    table_name = "Promet",
+    expected_columns = c("Cestno blagovni"),
+    column_codes = c("period_id", "CB"),
+    description = "Cestno blagovni promet",
+    interval = "Q",
+    unit = "tonski kilometer (mio)"
+  ),
+    cest_notr = list(
+    category = "Promet",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Promet/notr",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = "Q\\d \\d{4}",
+    file_pattern = "^CB not",
+    table_id = "PR",
+    table_name = "Promet",
+    expected_columns = c("NOTR orig#"),
+    column_codes = c("period_id", "CBn"),
+    description = "Cestno blagovni promet notranji",
+    interval = "Q",
+    unit = "tonski kilometer (mio)"
+  ),
+    zel_promet = list(
+    category = "Promet",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Promet/zel",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = "Q\\d \\d{4}",
+    file_pattern = "^ZB",
+    table_id = "PR",
+    table_name = "Promet",
+    expected_columns = c("ŽELBL"),
+    column_codes = c("period_id", "ZB"),
+    description = "Železniški blagovni promet",
+    interval = "Q",
+    unit = "tonski kilometer (mio)"
+  ),
+    zel_promet = list(
+    category = "Promet",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Promet/tuj",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = "Q\\d \\d{4}",
+    file_pattern = "^CB med",
+    table_id = "PR",
+    table_name = "Promet",
+    expected_columns = c("Izvoz", "Uvoz", "Tujina"),
+    column_codes = c("period_id", "Ex", "Im", "Tuj"),
+    description = "Cestni blagovni promet podkomponente",
+    interval = "Q",
+    unit = "tonski kilometer (mio)"
   )
 )
 
