@@ -255,7 +255,7 @@ desezoniranje_config <- list(
     interval = "Q",
     unit = "tonski kilometer (mio)"
   ),
-    zel_promet = list(
+    tujina_promet = list(
     category = "Promet",
     base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Promet/tuj",
     year_folder_pattern = "\\d{4}",
