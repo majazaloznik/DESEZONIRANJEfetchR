@@ -63,25 +63,6 @@ test_that("find_most_recent_file errors when no files match", {
   )
 })
 
-test_that("find_most_recent_file warns with multiple matching files", {
-  base_dir <- withr::local_tempdir()
-  dir.create(file.path(base_dir, "2025"))
-  dir.create(file.path(base_dir, "2025", "Q1 2025"))
-
-  file.create(file.path(base_dir, "2025", "Q1 2025", "BP2024_2008 (a).xls"))
-  file.create(file.path(base_dir, "2025", "Q1 2025", "BP2024_2008 (b).xls"))
-
-  expect_warning(
-    find_most_recent_file(
-      base_path = base_dir,
-      file_pattern = "^BP\\d{4}_\\d{4}",
-      year_pattern = "\\d{4}",
-      month_pattern = "Q\\d \\d{4}"
-    ),
-    "Multiple files match pattern"
-  )
-})
-
 test_that("get_all_recent_files returns named vector of file paths", {
   # Create temporary base directories for two mock data sources
   base_dir_1 <- withr::local_tempdir()

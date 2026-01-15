@@ -73,19 +73,19 @@ desezoniranje_config <- list(
     unit = "\u0161tevilo"
   ),
   ilo_stopnja = list(
-      category = "Trg dela",
-      base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/ILO/Stopnja brezposelnosti",
-      year_folder_pattern = "Leto \\d{4}",
-      month_folder_pattern = "Q\\d \\d{4}",
-      file_pattern = "^Stopnja ILO",
-      table_id = "ILO",
-      table_name = "Brezposelnost - ILO",
-      expected_columns = c("Stopnja ILO brezposelnih"),
-      column_codes = c("period_id", "ST"),
-      description = "ILO stopnja brezposelnih",
-      interval = "Q",
-      unit = "%"
-    ),
+    category = "Trg dela",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/ILO/Stopnja brezposelnosti",
+    year_folder_pattern = "Leto \\d{4}",
+    month_folder_pattern = "Q\\d \\d{4}",
+    file_pattern = "^Stopnja ILO",
+    table_id = "ILO",
+    table_name = "Brezposelnost - ILO",
+    expected_columns = c("Stopnja ILO brezposelnih"),
+    column_codes = c("period_id", "ST"),
+    description = "ILO stopnja brezposelnih",
+    interval = "Q",
+    unit = "%"
+  ),
   ilo_zaposleni = list(
     category = "Trg dela",
     base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/ILO/Zaposleni",
@@ -213,7 +213,7 @@ desezoniranje_config <- list(
     interval = "M",
     unit = "indeks"
   ),
-    cest_promet = list(
+  cest_promet = list(
     category = "Promet",
     base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Promet/cest",
     year_folder_pattern = "\\d{4}",
@@ -227,7 +227,7 @@ desezoniranje_config <- list(
     interval = "Q",
     unit = "tonski kilometer (mio)"
   ),
-    cest_notr = list(
+  cest_notr = list(
     category = "Promet",
     base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Promet/notr",
     year_folder_pattern = "\\d{4}",
@@ -241,7 +241,7 @@ desezoniranje_config <- list(
     interval = "Q",
     unit = "tonski kilometer (mio)"
   ),
-    zel_promet = list(
+  zel_promet = list(
     category = "Promet",
     base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Promet/zel",
     year_folder_pattern = "\\d{4}",
@@ -255,7 +255,7 @@ desezoniranje_config <- list(
     interval = "Q",
     unit = "tonski kilometer (mio)"
   ),
-    tujina_promet = list(
+  tujina_promet = list(
     category = "Promet",
     base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Promet/tuj",
     year_folder_pattern = "\\d{4}",
@@ -268,6 +268,20 @@ desezoniranje_config <- list(
     description = "Cestni blagovni promet podkomponente",
     interval = "Q",
     unit = "tonski kilometer (mio)"
+  ),
+  socialni_transferji = list(
+    category = "Socialni transferji upravičenci",
+    base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Socialni kazalniki_2022/Desezioniranje/Izhodne datoteke!!!/Desezonirano (socialni transferji)",
+    year_folder_pattern = "\\d{4}",
+    month_folder_pattern = NULL,
+    file_pattern = "^Socialni transferji",
+    table_id = "STu",
+    table_name = "Socialni transferji upravičenci",
+    expected_columns = c("u_DSP",	"p_DNB"),
+    column_codes = c("period_id", "u_DSP",	"p_DNB"),
+    description = "Socialni transferji - upravičenci do DSP in DNB",
+    interval = "M",
+    unit = "število"
   )
 )
 

@@ -4,7 +4,12 @@
 \alias{find_most_recent_file}
 \title{Find most recent Excel file in nested date folders}
 \usage{
-find_most_recent_file(base_path, file_pattern, year_pattern, month_pattern)
+find_most_recent_file(
+  base_path,
+  file_pattern,
+  year_pattern,
+  month_pattern = NULL
+)
 }
 \arguments{
 \item{base_path}{Character string. Base directory path containing year folders.}
@@ -15,32 +20,46 @@ Pattern is anchored at the start and ".xls$" is appended automatically.}
 \item{year_pattern}{Character string. Regex pattern to identify year folders
 (e.g., "Leto \\\\d{4}" or "\\\\d{4}").}
 
-\item{month_pattern}{Character string. Regex pattern to identify month or
-quarter folders (e.g., "\\\\d{2} \\\\d{4}" or "Q\\\\d \\\\d{4}").}
+\item{month_pattern}{Character string or NULL. Regex pattern to identify month or
+quarter folders (e.g., "\\\\d{2} \\\\d{4}" or "Q\\\\d \\\\d{4}").
+Set to NULL for folders with no month subfolders.}
 }
 \value{
-Character string. Full path to the most recent matching Excel file.
+List with two elements: `path` (character string full path to the most
+  recent matching Excel file) and `mtime` (POSIXct file modification time).
 }
 \description{
-Navigates through year and month/quarter folder structures to locate
+Navigates through year and optionally month/quarter folder structures to locate
 the most recent Excel file matching a given pattern. Used to find
 DESEZONIRANJE files in the standardized O:/DESEZONIRANJE folder structure.
 }
 \details{
-The function assumes a folder structure: base_path/year_folder/month_folder/file.xls
-It selects the lexicographically maximum year and month folders (which works
-for standard date formats), then finds files matching the pattern.
+The function handles two folder structures:
+1. With month folders: base_path/year_folder/month_folder/file.xls
+2. Without month folders (month_pattern = NULL): base_path/year_folder/file.xls
 
-Stops with error if no matching files found. Issues warning if multiple
-files match the pattern (returns first match).
+It selects the lexicographically maximum year and (if applicable) month folders,
+then finds the most recent file matching the pattern based on modification time.
+
+Stops with error if no matching files found. When multiple files match, selects
+the one with the most recent modification time.
 }
 \examples{
 \dontrun{
+# With month folders
 find_most_recent_file(
   base_path = "O:/DESEZONIRANJE/Trg dela/ILO/Brezposelni",
   file_pattern = "^ILO brezposelni",
   year_pattern = "\\\\d{4}",
   month_pattern = "Q\\\\d \\\\d{4}"
+)
+
+# Without month folders
+find_most_recent_file(
+  base_path = "O:/DESEZONIRANJE/Some/Path",
+  file_pattern = "^DataFile",
+  year_pattern = "\\\\d{4}",
+  month_pattern = NULL
 )
 }
 

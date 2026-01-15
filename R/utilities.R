@@ -1,6 +1,6 @@
 #' Find most recent Excel file in nested date folders
 #'
-#' Navigates through year and month/quarter folder structures to locate
+#' Navigates through year and optionally month/quarter folder structures to locate
 #' the most recent Excel file matching a given pattern. Used to find
 #' DESEZONIRANJE files in the standardized O:/DESEZONIRANJE folder structure.
 #'
@@ -9,32 +9,45 @@
 #'   Pattern is anchored at the start and ".xls$" is appended automatically.
 #' @param year_pattern Character string. Regex pattern to identify year folders
 #'   (e.g., "Leto \\\\d{4}" or "\\\\d{4}").
-#' @param month_pattern Character string. Regex pattern to identify month or
+#' @param month_pattern Character string or NULL. Regex pattern to identify month or
 #'   quarter folders (e.g., "\\\\d{2} \\\\d{4}" or "Q\\\\d \\\\d{4}").
+#'   Set to NULL for folders with no month subfolders.
 #'
-#' @return Character string. Full path to the most recent matching Excel file.
+#' @return List with two elements: `path` (character string full path to the most
+#'   recent matching Excel file) and `mtime` (POSIXct file modification time).
 #'
 #' @details
-#' The function assumes a folder structure: base_path/year_folder/month_folder/file.xls
-#' It selects the lexicographically maximum year and month folders (which works
-#' for standard date formats), then finds files matching the pattern.
+#' The function handles two folder structures:
+#' 1. With month folders: base_path/year_folder/month_folder/file.xls
+#' 2. Without month folders (month_pattern = NULL): base_path/year_folder/file.xls
 #'
-#' Stops with error if no matching files found. Issues warning if multiple
-#' files match the pattern (returns first match).
+#' It selects the lexicographically maximum year and (if applicable) month folders,
+#' then finds the most recent file matching the pattern based on modification time.
+#'
+#' Stops with error if no matching files found. When multiple files match, selects
+#' the one with the most recent modification time.
 #'
 #' @examples
 #' \dontrun{
+#' # With month folders
 #' find_most_recent_file(
 #'   base_path = "O:/DESEZONIRANJE/Trg dela/ILO/Brezposelni",
 #'   file_pattern = "^ILO brezposelni",
 #'   year_pattern = "\\d{4}",
 #'   month_pattern = "Q\\d \\d{4}"
 #' )
+#'
+#' # Without month folders
+#' find_most_recent_file(
+#'   base_path = "O:/DESEZONIRANJE/Some/Path",
+#'   file_pattern = "^DataFile",
+#'   year_pattern = "\\d{4}",
+#'   month_pattern = NULL
+#' )
 #' }
 #'
 #' @keywords internal
-
-find_most_recent_file <- function(base_path, file_pattern, year_pattern, month_pattern) {
+find_most_recent_file <- function(base_path, file_pattern, year_pattern, month_pattern = NULL) {
   # Check base path exists
   if (!dir.exists(base_path)) {
     stop("Base path does not exist: ", base_path)
@@ -49,31 +62,40 @@ find_most_recent_file <- function(base_path, file_pattern, year_pattern, month_p
   }
 
   latest_year <- max(year_dirs)
-
-  # Find most recent month folder within that year
   year_path <- file.path(base_path, latest_year)
-  month_dirs <- list.dirs(year_path, full.names = FALSE, recursive = FALSE)
-  month_dirs <- month_dirs[grepl(month_pattern, month_dirs)]
 
-  if (length(month_dirs) == 0) {
-    stop("No month folders matching pattern '", month_pattern, "' found in ", year_path)
+  # Determine target directory based on whether month folders exist
+  if (!is.null(month_pattern)) {
+    # Case 1: With month folders
+    month_dirs <- list.dirs(year_path, full.names = FALSE, recursive = FALSE)
+    month_dirs <- month_dirs[grepl(month_pattern, month_dirs)]
+
+    if (length(month_dirs) == 0) {
+      stop("No month folders matching pattern '", month_pattern, "' found in ", year_path)
+    }
+
+    latest_month <- max(month_dirs)
+    target_dir <- file.path(year_path, latest_month)
+  } else {
+    # Case 2: No month folders - files directly in year folder
+    target_dir <- year_path
   }
 
-  latest_month <- max(month_dirs)
-
-  # Find matching file
-  target_dir <- file.path(year_path, latest_month)
+  # Find matching files
   files <- list.files(target_dir, pattern = paste0(file_pattern, ".*\\.xls$"), full.names = TRUE)
 
   if (length(files) == 0) {
     stop("No matching files found in ", target_dir)
   }
 
+  # Select most recent file by modification time
   if (length(files) > 1) {
-    warning("Multiple files match pattern, using first: ", files[1])
+    file_times <- file.info(files)$mtime
+    file_path <- files[which.max(file_times)]
+    message("Multiple files found, selected most recent: ", basename(file_path))
+  } else {
+    file_path <- files[1]
   }
-
-  file_path <- files[1]
 
   # Return both path and timestamp
   list(
