@@ -34,7 +34,7 @@ desezoniranje_config <- list(
     base_path = "\\\\192.168.38.7\\public$\\DESEZONIRANJE/Trg dela/Delovno aktivni/Brez kmetov",
     year_folder_pattern = "Leto \\d{4}",
     month_folder_pattern = "\\d{2} \\d{4}",
-    file_pattern = "^DA brez",
+    file_pattern = "^DA",
     table_id = "DA",
     table_name = "Delovno aktivni",
     expected_columns = c("DA brez kmetov"),
